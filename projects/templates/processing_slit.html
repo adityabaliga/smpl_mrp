@@ -1,0 +1,259 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SMPL MRP- Processing</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+    <style>
+        .mytable>tbody>tr>td, .mytable>tbody>tr>th, .mytable>tfoot>tr>td, .mytable>tfoot>tr>th, .mytable>thead>tr>td, .mytable>thead>tr>th {
+    padding: 6px;
+    }
+    input,select {
+    font-family: "Verdana";
+    }
+    hr.style1{
+	        border-top: 15px solid #4d0000;
+    }
+    .oe{
+            font-family: Mathematica6 Bold, Old English Text MT, Engravers Old English BT, Old English, Collins Old English, New Old English, serif;
+            font-size: 50px;
+            color: #4d0000;
+            text-align:center;
+    }
+    .topnav a:hover {
+            color: #4d0000;
+            text-decoration: none;
+    }
+    .nopad {
+                margin: 0;
+                padding: 0;
+                margin-top: 0em;
+                margin-bottom: 0em;
+    }
+    </style>
+</head>
+
+<body onload="setFocusToTextBox_Slit()">
+<form action="/submit_processing" method="post">
+
+     <div class="topnav" id="myTopnav">
+        <br>
+        <table>
+            <td><img src="/static/logo.jpg"  height="70" width="92" align = "left"></td>
+            <td width="1050px"><div align="center" class="nopad"> <a href="\main_menu"  class="oe">SMPL</a></div></td>
+            <td><div align="left" class="nopad">Hi {{current_user.username}}<br>
+            <a href="\change_password_form">Change Password</a><br>
+            <a href="\logout">Logout</a></div></td>
+        </table>
+    </div>
+
+    <hr class ="style1">
+
+    <h2 align = "center"><input type="text" name="operation" value = "{{operation}}" style = "border:0;text-align:center" readonly></h2>
+    <div style="background-color:#99e699;">
+    <h3 align = "center">Mother Coil Details</h3>
+
+    <table class = "table table-sm">
+    <tr>
+        <td>SMPL No</td>
+        <td><input type="text" name="smpl_no" value = "{{incoming.smpl_no}}" readonly></td>
+
+        <td >Customer</td>
+        <td><input type="text" name="customer" value = "{{incoming.customer}}" readonly></td>
+    </tr>
+    <tr>
+        <td>Thickness</td>
+        <td><input type="text"  name="thickness" id = "thickness" value = "{{incoming.thickness}}" readonly></td>
+
+        <td>Weight</td>
+        <td><input type="text"  name="inc_weight" id = "inc_weight" value = "{{incoming.weight}}" readonly></td>
+
+    </tr>
+    <tr>
+        <td>Length</td>
+        <td><input type="text"  name="length" value = "{{incoming.length}}" readonly></td>
+
+        <td>Width</td>
+        <td><input type="text"  name="width" value = "{{incoming.width}}" readonly></td>
+
+        <td>Numbers</td>
+        <td><input type="text" name="numbers"  value = "{{incoming.numbers}}" readonly></td>
+    </tr>
+    <tr>
+
+
+        <td>Grade</td>
+        <td><input type="text"  name="grade"  value = "{{incoming.grade}}" readonly></td>
+
+    </tr>
+    </table><hr>
+    <h3 align = "center">Input Material</h3>
+    <table class = "table table-sm">
+
+        <tr>
+
+            <th>Size</th>
+            <th>Total Numbers</th>
+            <th>Weight (in MT)</th>
+
+
+        </tr>
+
+        <tr>
+            <td>
+            <input type = "text" name = "input_material" id = "input_material" value = "{{cs_rm.width}} x {{cs_rm.length}}" readonly>
+            </td>
+
+            <td><input type = "number" name ="input_numbers" id = "numbers" value = {{cs_rm.numbers}} readonly></td>
+            <td><input type = "number" name ="input_weight" id = "weight" value = {{cs_rm.weight}} readonly></td>
+
+
+        </tr>
+
+    </table>
+    </div>
+    <h3 align = "center">Processing Details</h3>
+    <table class = "table table-sm" id="numbers_pkts1">
+        <tr>
+            <th>Output Width</th>
+            <th>Number of Slits</th>
+            <th>FG/WIP</th>
+
+        </tr>
+
+        <tr>
+            <td><input type = "number" name = "output_width" step=".1" id = "output_width"></td>
+            <td><input type = "number" name = "no_of_slits" id = "no_of_slits"></td>
+            <td>
+                <select name="fg_yes_no" id="fgyesno">
+                    <option value="FG">FG</option>
+                    <option value="WIP">WIP</option>
+
+                </select>
+            </td>
+
+
+            <td><input type="button" name="add_size" id="add_size" value="Add Size" onclick="addRow('numbers_pkts1')"></td>
+
+        </tr>
+
+    </table>
+    <table class = "table table-sm" id="numbers_pkts">
+        <tr>
+            <th>Total Length Processed</th>
+            <td><input type = "number" name = "total_length" id="total_length" onfocusout ="get_part_weight()"></td>
+            <th>No. of Parts</th>
+            <td><input type = "number" name ="actual_no_of_packets" id = "actual_no_of_packets" ></td>
+            <th></th>
+            <td><input type = "number" name = "actual_no_of_pieces" id = "actual_no_of_pieces" hidden></td>
+
+
+        </tr>
+
+        <tr>
+
+
+            <th>Total Processed Weight (in MT)</th>
+            <td><input type ="number" name = "processed_wt" id = "processed_wt" readonly></td>
+            <th>Remarks</th>
+            <td><input type = "text" name = "remarks" style="width:300px;" id = "remarks"></td>
+            <th></th>
+            <td><input type = "text" name = "machine" value ="{{operation}}" style="width:300px;" id = "machine" hidden></td>
+        </tr>
+
+    </table>
+
+
+    </table>
+
+    <table class = "table table-sm">
+        <tr>
+            <td>Setting Date</td>
+            <td><input type="date"  name="setting_date" required></td>
+            <td>Setting Start Time</td>
+            <td><input type="time" id = "setting_start_time" name="setting_start_time" required></td>
+            <td>Setting End Time</td>
+            <td><input type="time"  id="setting_end_time" name="setting_end_time" onfocusout="time_taken_setting()" required></td>
+            <td>Setting Time (in minutes)</td>
+            <td><input type="number"  id= "setting_time" name="setting_time" readonly></td>
+
+        </tr>
+        <tr>
+            <td>Processing Date</td>
+            <td><input type="date"  name="processing_date" required></td>
+            <td>Processing Start Time</td>
+            <td><input type="time" id = "start_time" name="start_time" required></td>
+            <td>Processing End Time</td>
+            <td><input type="time"  id="end_time" name="end_time" onfocusout="time_taken()" required></td>
+
+            <td>Processing Time (in minutes)</td>
+            <td><input type="number"  id= "processing_time" name="processing_time" readonly></td>
+        </tr>
+        <tr>
+            <td>No. of fitters</td>
+            <td><input type = "number" name = "no_of_qc" id = "no_of_qc"></td>
+            <td>No. of helpers</td>
+            <td><input type = "number" name = "no_of_helpers" id = "no_of_helpers"></td>
+            <td>Names of fitters</td>
+            <td><input type = "text" name = "names_of_qc" id = "names_of_qc"></td>
+            <td>Names of Helpers</td>
+            <td><input type = "text" name = "names_of_helpers" id = "names_of_helpers"></td>
+            <td>Names of Packers</td>
+            <td><input type = "text" name = "name_of_packer" id = "name_of_packer"></td>
+        </tr>
+    </table>
+
+    <table class="table table-sm" id="slitting_cutters">
+        <tr>
+            <th>Slitter Batch</th>
+            <th>Slitter Number (Please enter space after each slitter number)</th>
+        </tr>
+        <tr>
+        <td>
+            <select name="slitter_batch" id="slitter_batch">
+                <option name="CR-AP-A">CR-AP-A</option>
+                <option name="CR-DT-15-A">CR-DT-15-A</option>
+                <option name="CR-DT-A">CR-DT-A</option>
+                <option name="CR-DT-AC">CR-DT-AC</option>
+                <option name="CR-DT-B">CR-DT-B</option>
+                <option name="CR-DT-D">CR-DT-D</option>
+                <option name="HR-AP-25-A">HR-AP-25-A</option>
+                <option name="HR-DT-15-A">HR-DT-15-A</option>
+                <option name="HR-DT-20-A">HR-DT-20-A</option>
+                <option name="HR-DT-20-B">HR-DT-20-B</option>
+                <option name="HR-DT-25-A">HR-DT-25-A</option>
+                <option name="MS-CR-BBS-12.7-A">MS-CR-BBS-12.7-A</option>
+                <option name="MS-CR-DT-10-A">MS-CR-DT-10-A</option>
+                <option name="MS-CR-DT-12.2-A">MS-CR-DT-12.2-A</option>
+                <option name="MS-CR-DT-12.4-A">MS-CR-DT-12.4-A</option>
+                <option name="MS-CR-DT-3.5-A">MS-CR-DT-3.5-A</option>
+                <option name="MS-CR-DT-3-A">MS-CR-DT-3-A</option>
+                <option name="MS-CR-DT-4-A">MS-CR-DT-4-A</option>
+                <option name="MS-CR-DT-4-B">MS-CR-DT-4-B</option>
+                <option name="MS-CR-DT-5-A">MS-CR-DT-5-A</option>
+                <option name="MS-CR-DT-7.8-A">MS-CR-DT-7.8-A</option>
+                <option name="MS-CR-DT-7-A">MS-CR-DT-7-A</option>
+                <option name="MS-CR-ST-8.5-A">MS-CR-ST-8.5-A</option>
+                <option name="SS-DT-12-A">SS-DT-12-A</option>
+            </select>
+        </td>
+        <td>
+            <input type="text" name="slitter_number" id="slitter_number">
+        </td>
+        <td>
+            <input type="button" class="btn btn-default" value="Add Row" onclick="addRow('slitting_cutters')" >
+        </td>
+        </tr>
+    </table>
+
+    <p>
+        <!--button type ="button" class="btn btn-default">Start</button-->
+        <input type="submit" name = "submit" class="btn btn-default" value="Submit">
+
+    </p>
+
+    <script src = "{{ url_for('static', filename='js/processing.js') }}"></script>
+
+
+</form>
+</body>
+</html>
