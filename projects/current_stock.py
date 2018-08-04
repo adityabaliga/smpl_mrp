@@ -68,7 +68,7 @@ class CurrentStock:
         if operation == "Reshearing":
             with CursorFromConnectionFromPool() as cursor:
                 cursor.execute("select * from current_stock where (status = 'RM' or status = 'HC' or status= 'WIP') and "
-                               "length > 0  order by smpl_no asc")
+                               "length > 0  and unit = %s order by smpl_no asc", (str(unit),))
                 user_data = cursor.fetchall()
 
         if user_data:
@@ -142,6 +142,7 @@ class CurrentStock:
                         new_numbers = numbers + Decimal(actual_no_of_pieces)
                     else:
                         new_numbers = numbers
+
                 if new_weight < 0.15:
                     cursor.execute("delete from current_stock where smpl_no = %s and width = %s and length = %s",(smpl_no,width,length))
                     return "complete"
@@ -158,18 +159,18 @@ class CurrentStock:
             cursor.execute('delete from current_stock where cs_id = %s',(cs_id,))
 
     @classmethod
-    def get_stock(cls, stock_type):
+    def get_stock(cls, stock_type,unit):
         user_data = []
         cs_lst=[]
         cs_id_lst =[]
 
         if stock_type == 'All':
             with CursorFromConnectionFromPool() as cursor:
-                cursor.execute("select * from current_stock")
+                cursor.execute("select * from current_stock where unit = %s",(unit,))
                 user_data = cursor.fetchall()
         else:
             with CursorFromConnectionFromPool() as cursor:
-                cursor.execute("select * from current_stock where status = %s",(stock_type,))
+                cursor.execute("select * from current_stock where status = %s and unit = %s",(stock_type,unit))
                 user_data = cursor.fetchall()
 
         for lst in user_data:

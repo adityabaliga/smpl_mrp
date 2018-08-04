@@ -52,7 +52,7 @@
 
         {% for cs_id, cs in cs_lst %}
             <tr>
-                <td><input type = "radio" name = "select_smpl" value = "{{cs_id}}">  {{cs.smpl_no}}</input></td>
+                <td><input type = "radio" name = "select_smpl" value = "{{cs_id}}" required>  {{cs.smpl_no}}</input></td>
                 <td>{{cs.customer}}</td>
                 <td>{{cs.weight}}</td>
                 <td>{{cs.thickness}} x {{cs.width}} x {{cs.length}}</td>

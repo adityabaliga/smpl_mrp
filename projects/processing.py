@@ -57,12 +57,5 @@ class Processing:
         with CursorFromConnectionFromPool() as cursor:
             cursor.execute('select * from processing where smpl_no = %s', (smpl_no, ))
             user_data = cursor.fetchall()
-            processing_lst = []
-            for lst in user_data:
-                processing = Processing(smpl_no=lst[2], operation=lst[2], processing_date=lst[3], start_time=lst[4],
-                                        end_time=lst[5], processing_time=lst[6], setting_start_time=lst[7],
-                                        setting_end_time=lst[8], setting_time=lst[9], no_of_qc=lst[10],
-                                        no_of_helpers=lst[11], names_of_qc=lst[12], names_of_helpers=lst[13],
-                                        name_of_packer=lst[14], setting_date=lst[15])
-                processing_lst.append(processing)
-        return processing_lst
+
+        return user_data

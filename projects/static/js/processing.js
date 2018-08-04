@@ -13,7 +13,7 @@ function setFocusToTextBox(operation){
 // This function is to set the focus when the page loads for slitting operation
 function setFocusToTextBox_Slit(){
 
-        document.getElementById("total_length").focus();
+        document.getElementById("output_width").focus();
 
 }
 
@@ -28,7 +28,12 @@ function for_packets_and_weight(table_id,table_row,operation){
 	var thk = Number(document.getElementById('thickness').value);
 	var weight_pos = 6;
 
-    var width =  Number(last_row.cells[0].lastChild.value);
+    if (operation == "Reshearing"){
+        var width =  Number(last_row.cells[0].lastChild.value);
+    }else{
+        var width =  Number(last_row.cells[0].lastChild.value);
+    }
+
     var length =  Number(last_row.cells[1].lastChild.value);
 
     numbers =  Number(last_row.cells[4].lastChild.value);
@@ -50,8 +55,13 @@ function calculate_wt_and_cuts(table_id){
         total_processed_wt += Number(row.cells[6].lastChild.value);
         total_cuts += Number(row.cells[4].lastChild.value);
     }
+    var rm_weight = Number(document.getElementById("weight").value);
+    var scrap_wt = rm_weight - total_processed_wt;
+
+
     document.getElementById("total_processed_wt").value = Number(total_processed_wt.toFixed(3));
     document.getElementById("total_cuts").value = total_cuts;
+    document.getElementById("scrap_wt").value = Number(scrap_wt.toFixed(3));
 }
 
 function time_taken(){
@@ -103,17 +113,11 @@ function get_part_weight(){
     input_material = input_material.split("x");
 
     var width = Number(input_material[0]);
-    incoming_wt = Number(document.getElementById("inc_weight").value);
+    rm_wt = Number(document.getElementById("weight").value);
 
     var total_processed_wt = thickness * width * total_length * 0.00000785;
-    var coil_length = incoming_wt/thickness/width/0.00000785;
-    if ((coil_length > 0.9*total_length) && (coil_length < 1.1*total_length))
-    {
-        document.getElementById("processed_wt").value = incoming_wt;
-    }else{
-        document.getElementById("processed_wt").value = total_processed_wt.toFixed(3);
-    }
-
+    var coil_length = rm_wt/thickness/width/0.00000785;
+    document.getElementById("processed_wt").value = total_processed_wt.toFixed(3);
 
 }
 

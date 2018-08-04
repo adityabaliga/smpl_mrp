@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>SMPL - Transfer Material</title>
+    <title>SMPL MRP - Select Unit</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
 <style>
         hr.style1{
@@ -27,7 +27,7 @@
     </style>
 
 </head>
-<form action="/transfer_submit">
+<form action="/transfer_pick_unit">
     <div class="topnav" id="myTopnav">
         <br>
         <table>
@@ -38,48 +38,14 @@
             <a href="\logout">Logout</a></div></td>
         </table>
     </div>
-
     <hr class ="style1">
+    <!--select name ="select_smpl"-->
+        <input type = "text" name = "stock_type" id="stock_type" value = "{{stock_type}}" hidden >
 
-
-    <table class = "table table-sm">
-            <tr>
-                <th>SMPL no.</th>
-                <th>Customer</th>
-                <th>Weight in MT</th>
-                <th>Size</th>
-                <th>Unit</th>
-            </tr>
-        {% for cs_id, cs in cs_lst %}
-            <tr>
-                <td><input type = "radio" name = "select_smpl" value = "{{cs_id}},{{cs.smpl_no}}">  {{cs.smpl_no}}</td>
-                <td>{{cs.customer}}</td>
-                <td>{{cs.weight}}</td>
-                <td>{{cs.thickness}} x {{cs.width}} x {{cs.length}}</td>
-                <td>{{cs.unit}}</td>
-            </tr>
-        {% endfor %}
-    <!--/select-->
-    </table>
-
-    <table>
-    <td>Transfer to Unit </td>
-        <td>
-            <select name="unit">
-                {% if cs_rm.unit == "1" %}
-                    <option value="1">1</option>
-                {% endif %}
-                {% if cs_rm.unit == "2" %}
-                    <option value="2">2</option>
-                {% endif %}
-            </select>
-        </td>
-    </table>
-
-    <br>
-    Remarks<input name ="remarks">
-
-    <p><input type="submit" class="btn btn-default" value="Submit"></p>
-
+        <td><input type = "radio" name = "select_unit" value = "1" required>  Unit 1</input></td><br>
+        <td><input type = "radio" name = "select_unit" value = "2">  Unit 2</input></td>
+    <td>
+        <br><input class="btn btn-default" type="submit" value="Select">
+    </td>
 </form>
 </html>

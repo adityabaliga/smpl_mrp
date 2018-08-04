@@ -94,7 +94,108 @@
 
 
 
+    </table>
 
+    <h3>Processing</h3>
+    <table class = "table table-sm table-striped">
+
+            {% for processing_hdr, processing_id in processing_hdr_lst %}
+            <tr>
+                <td><b>Operation: {{processing_hdr.operation}}</b></td>
+                <td><b>Processing Date: {{processing_hdr.processing_date}}</b></td>
+                <td></td>
+            </tr>
+            {% for processing_dtl in processing_dtl_lst %}
+
+                    {% if processing_id == processing_dtl.processing_id %}
+                       <tr>
+                           <td>Machine: {{processing_dtl.machine}}</td>
+                           <td>Input Size: {{processing_dtl.input_width}} x {{processing_dtl.input_length}}</td>
+                           <td>Output Size: {{processing_dtl.cut_width}} x {{processing_dtl.cut_length}}</td>
+                        </tr>
+                         <tr>
+                            {% if processing_hdr.operation == "Slitting" or processing_hdr.operation == "Mini Slitting" %}
+                            <td>Length in m: {{processing_dtl.processed_numbers}}</td>
+                            <td>Number of coils: {{processing_dtl.processed_packets}}</td>
+                            <td>Processed Weight: {{processing_dtl.processed_wt}}</td>
+                            {% else %}
+                            <td>Numbers: {{processing_dtl.processed_numbers}}</td>
+                            <td>Number of Packets: {{processing_dtl.processed_packets}}</td>
+                            <td>Processed Weight: {{processing_dtl.processed_wt}}</td>
+                            {% endif %}
+                        </tr>
+                    {% endif %}
+                {% endfor %}
+            <tr>
+                <td>Processing Start Time: {{processing_hdr.start_time}}</td>
+                <td>Processing End Time: {{processing_hdr.end_time}}</td>
+                <td>Processing Time (in minutes): {{processing_hdr.processing_time}}</td>
+            </tr>
+            {% if processing_hdr.operation == "Slitting" or processing_hdr.operation == "Mini Slitting" %}
+            <tr>
+                <td>Setting Start Time: {{processing_hdr.setting_start_time}}</td>
+                <td>Setting End Time: {{processing_hdr.setting_end_time}}</td>
+                <td>Setting Time (in minutes): {{processing_hdr.setting_time}}</td>
+            </tr>
+            {% endif %}
+
+            <tr>
+                <td>Name of QC: {{processing_hdr.names_of_qc}}</td>
+                <td>Names of Helpers: {{processing_hdr.names_of_helpers}}</td>
+                <td>Names of Packers: {{processing_hdr.name_of_packer}}</td>
+            </tr>
+
+
+            {% endfor %}
+
+    </table>
+    <h3>Dispatch Details</h3>
+     <table class = "table table-sm">
+        {% for dispatch_hdr, dispatch_id in dispatch_hdr_lst %}
+         <tr>
+                <th>Vehicle No.</th>
+                <th>Customer</th>
+                <th>Dispatch Date</th>
+                <th>Dispatch Time</th>
+                <th>Remarks</th>
+        </tr>
+         <tr>
+                <td>{{dispatch_hdr.vehicle_no}}</td>
+                <td>{{dispatch_hdr.customer}}</td>
+                <td>{{dispatch_hdr.dispatch_date}}</td>
+                <td>{{dispatch_hdr.dispatch_time}}</td>
+                <td>{{dispatch_hdr.remarks}}</td>
+        </tr>
+    </table>
+
+        <h3>Dispatch Details</h3>
+        <table class = "table table-sm">
+            <tr>
+                    <th>SMPL No.</th>
+                    <th>Thickness</th>
+                    <th>Size</th>
+                    <th>Numbers</th>
+                    <th>Weight</th>
+                    <th>No. of Packets</th>
+                    <th>Defectives</th>
+
+            </tr>
+            {% for detail in dispatch_detail_lst %}
+                {% if dispatch_id == detail.dispatch_id %}
+                <tr>
+
+                        <td>{{detail.smpl_no}}</td>
+                        <td>{{detail.thickness}}</td>
+                        <td>{{detail.width}} x {{detail.length}}</td>
+                        <td>{{detail.numbers}}</td>
+                        <td>{{detail.dispatch_wt}}</td>
+                        <td>{{detail.no_of_pkts}}</td>
+                        <td>{{detail.defectives}}</td>
+
+                </tr>
+                {% endif %}
+            {% endfor %}
+        {% endfor %}
     </table>
 
 </body>

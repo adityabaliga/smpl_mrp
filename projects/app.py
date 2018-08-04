@@ -280,7 +280,37 @@ def put_on_unhold():
 
 @app.route('/transfer_material', methods=['GET', 'POST'])
 def transfer_material():
-    cs_return_lst = CurrentStock.get_stock('All')
+    if current_user.unit == 1 or current_user.unit == 2:
+        cs_return_lst = CurrentStock.get_stock('All', current_user.unit)
+    else:
+        return render_template('/transfer_pick_unit.html', stock_type='All')
+
+    cs_obj_lst = []
+    cs_id_lst = []
+
+    for cs_id, cs in cs_return_lst:
+        cs_id_lst.append(cs_id)
+        cs_obj_lst.append(cs)
+
+    if cs_obj_lst:
+        return render_template('transfer_material.html', cs_lst=zip(cs_id_lst, cs_obj_lst))
+    else:
+        return render_template('/main_menu.html', message="No Raw material to transfer")
+
+
+@app.route('/transfer_pick_unit', methods=['GET', 'POST'])
+def transfer_pick_unit():
+    stock_type = ""
+    unit = ""
+    if request.method == 'POST':
+        unit = request.form['select_unit']
+        stock_type = request.form['stock_type']
+    if request.method == 'GET':
+        unit = request.args.get('select_unit')
+        stock_type = request.args.get('stock_type')
+
+    cs_return_lst = CurrentStock.get_stock(stock_type,int(unit))
+
     cs_obj_lst = []
     cs_id_lst = []
 
@@ -383,11 +413,34 @@ def orders_by_machine():
     if current_user.unit == 1 or current_user.unit == 2:
         cs_lst = CurrentStock.smpl_list_for_place_order(operation, current_user.unit)
 
+    if current_user.unit == 0:
+        return render_template('/processing_pick_unit.html', operation=operation)
+
+
     if cs_lst:
         return render_template('/processing_pick_smpl.html', operation=operation, cs_lst=cs_lst)
     else:
         return render_template('/main_menu.html', message="No raw material or WIP available!")
 
+
+@app.route('/processing_pick_unit', methods=['GET', 'POST'])
+def processing_pick_unit():
+    operation = ""
+    unit = ""
+    if request.method == 'POST':
+        unit = request.form['select_unit']
+        operation = request.form['operation']
+    if request.method == 'GET':
+        unit = request.args.get('select_unit')
+        operation = request.args.get('operation')
+
+
+    cs_lst = CurrentStock.smpl_list_for_place_order(operation, int(unit))
+
+    if cs_lst:
+        return render_template('/processing_pick_smpl.html', operation=operation, cs_lst=cs_lst)
+    else:
+        return render_template('/main_menu.html', message="No raw material or WIP available!")
 
 # Function to load details of raw material and order for the smpl selected
 @app.route('/processing_load', methods=['GET', 'POST'])
@@ -407,6 +460,7 @@ def processing_load():
     processing_detail_lst = ProcessingDetail.load_from_db(cs_rm.smpl_no, operation)
 
     if operation == "CTL":
+        unit = current_user.unit
         return render_template('processing_ctl.html', incoming=incoming, operation=operation,
                                processing_details_lst=processing_detail_lst, cs_rm=cs_rm, cs_rm_id=cs_rm_id)
 
@@ -468,6 +522,10 @@ def submit_processing():
         setting_end_time = request.form['setting_end_time']
         setting_time = request.form['setting_time']
 
+        rm_processed_wt = Decimal(request.form['processed_wt'])
+        rm_wt = Decimal(request.form['input_weight'])
+        cs_rm_id = request.form['cs_rm_id']
+
         # Processing object created and saved to db
         processing = Processing(smpl_no, operation, processing_date, start_time, end_time, setting_start_time,
                                 setting_end_time, processing_time, setting_time, no_of_qc, no_of_helpers, names_of_qc, 
@@ -495,8 +553,30 @@ def submit_processing():
                                                          actual_no_of_packets, processed_wt, remarks)
                     processing_detail.save_to_db()
 
+                    if operation == "Reshearing":
+                        # For reshearing, the mother material no. of pieces consumed have to be calculated and scrap
+                        # per mother piece has to be calculated and subtracted from the weight
+                        ms_weight = Decimal(thickness) * Decimal(ms_width) * Decimal(ms_length) * Decimal(0.00000785);
+                        output_weight = Decimal(thickness) * Decimal(output_length) * Decimal(output_width) * Decimal(0.00000785);
+                        # Calculate no of pieces got per mother sheet and then divide by no of output pieces to get
+                        # no. of mother sheets consumed
+                        no_of_pieces_per_ms = int(ms_weight/output_weight)
+                        no_of_ms_consumed = int(int(actual_no_of_pieces)/no_of_pieces_per_ms)
+
+                        # For scrap per mother sheet
+                        scrap_per_ms = ((ms_weight / output_weight) % 1)
+                        total_scrap = Decimal(scrap_per_ms) * Decimal(no_of_ms_consumed) / Decimal(1000)
+
+                        processed_wt = Decimal(processed_wt) - round(total_scrap,3)
+
+                    elif operation == "Narrow CTL":
+                        no_of_ms_consumed = rm_wt/processed_wt
+
+                    else:
+                        no_of_ms_consumed = actual_no_of_pieces
+
                     # Reduce weight of mother material by the processed weight of cut material
-                    CurrentStock.change_wt(smpl_no, ms_width, ms_length, processed_wt, actual_no_of_pieces, "minus")
+                    CurrentStock.change_wt(smpl_no, ms_width, ms_length, processed_wt, no_of_ms_consumed, "minus")
 
                     # Increase weight of cut material by processed weight. If cut material, doesn't already exist, the
                     # function returns insert => a new record has to be inserted
@@ -518,13 +598,6 @@ def submit_processing():
                                              output_width, output_length, fg_yes_no, grade, unit)
                         cs_cc.save_to_db()
 
-                    # This checks if detail is complete by comparing the processed weight and order detail weight.
-                    # If the order detail is complete, it checks if all the order details in that stage are complete 
-                    # (check_stage_complete)
-                    # If all the order details in that stage are complete, it makes the order details of the next stage 
-                    # ready for production
-                    # If this is the last stage of the order, it marks the order as closed
-                    # OrderDetail.detail_complete(order_detail_id)
 
         if operation == "Slitting" or operation == "Mini Slitting":
             ip_size = input_size.split('x')
@@ -569,12 +642,7 @@ def submit_processing():
 
                     # Unit of the material is decided based on the machine used to process the material.
                     # WARNING: This is bad programming
-                    if machine == "CTL 2" or machine == "Slitting" or machine == "Mini Slitting" \
-                            or machine == "Reshearing 5" or machine == "Reshearing 6" \
-                            or machine == "Reshearing 7" or machine == "NCTL 1" or machine == "NCTL 2":
-                        unit = '2'
-                    else:
-                        unit = '1'
+                    unit = '2'
 
                     # The new material is added to current stock
                     if cc_insert == "insert":
@@ -603,6 +671,11 @@ def submit_processing():
                                                  thickness)
                     slitter_usage.save_to_db()
 
+        # I'm assuming if less than 3% of the rm weight remains, that the material is over and the rm can be deleted
+        balance_wt = abs(rm_wt - rm_processed_wt)
+        if balance_wt/rm_wt < 0.03:
+            CurrentStock.delete_record(cs_rm_id)
+
         return render_template('/main_menu.html', message="Processing for " + smpl_no + " entered.")
 
 
@@ -615,13 +688,20 @@ def check_stock():
 @app.route('/stock', methods=['GET', 'POST'])
 def stock():
     stock_type = ""
+    cs_lst = []
     if request.method == 'POST':
         stock_type = request.form['stock_type']
 
     if request.method == 'GET':
         stock_type = request.args.get('stock_type')
 
-    cs_lst = CurrentStock.get_stock(stock_type)
+    if current_user.unit == 1 or current_user.unit == 2:
+        cs_lst = CurrentStock.get_stock(stock_type, current_user.unit)
+    else:
+        cs_lst_unit1 = CurrentStock.get_stock(stock_type, 1)
+        cs_lst_unit2 = CurrentStock.get_stock(stock_type, 2)
+        cs_lst.append(cs_lst_unit1)
+        cs_lst.append(cs_lst_unit2)
 
     return render_template('stock_display.html', cs_lst=cs_lst)
 
@@ -791,31 +871,55 @@ def history_show_details():
     if request.method == 'GET':
         smpl_no = request.args.get('smpl_no')
 
+    smpl_no = str(smpl_no).upper().replace(" ", "")
+    #smpl_no.replace(" ", "")
     smpl_no_lst = Incoming.smpl_no_list_for_history(smpl_no)
     if smpl_no_lst:
         incoming = Incoming.load_smpl_by_smpl_no(smpl_no)
 
+        processing_return_lst = []
+        processing_id_lst = []
+        processing_lst =[]
         processing_hdr_lst = []
         processing_dtl_lst = []
         dispatch_hdr_lst = []
         dispatch_dtl_lst = []
         dispatch_id_lst = []
         for smpl_no in smpl_no_lst:
-            processing_hdr_lst.append(Processing.load_history(smpl_no))
+            user_data = Processing.load_history(smpl_no)
+            processing_lst = []
+            processing_id_lst = []
+            for lst in user_data:
+                processing = Processing(smpl_no=lst[1], operation=str(lst[2]), processing_date=lst[3], start_time=lst[4],
+                                        end_time=lst[5], processing_time=lst[6], setting_start_time=lst[7],
+                                        setting_end_time=lst[8], setting_time=lst[9], no_of_qc=lst[10],
+                                        no_of_helpers=lst[11], names_of_qc=lst[12], names_of_helpers=lst[13],
+                                        name_of_packer=lst[14], setting_date=lst[15])
+                processing_lst.append(processing)
+                processing_id_lst.append(int(lst[0]))
+
+
+
             processing_dtl_lst.append(ProcessingDetail.load_history(smpl_no))
 
             dispatch_dtl_lst.append(DispatchDetail.load_from_db(smpl_no))
             for dispatch_dtl_sublst in dispatch_dtl_lst:
                 for dispatch_dtl in dispatch_dtl_sublst:
-                    dispatch_id_lst.append(dispatch_dtl.dispatch_id)
+                    dispatch_id_lst.append(int(dispatch_dtl.dispatch_id))
 
             dispatch_id_lst = list(set(dispatch_id_lst))
+            dispatch_lst = []
             for dispatch_id in dispatch_id_lst:
                 dispatch_hdr_lst.append(DispatchHeader.load_from_db(dispatch_id))
+                dispatch_lst = dispatch_hdr_lst[0]
 
         file_list = FileUploader.get_files_for_smpl_no(smpl_no)
 
-        return render_template('/history_view.html', incoming=incoming, file_list=file_list)
+        return render_template('/history_view.html', incoming=incoming, file_list=file_list,
+                               processing_hdr_lst = zip(processing_lst, processing_id_lst),
+                               processing_dtl_lst = processing_dtl_lst[0],
+                               dispatch_hdr_lst=zip(dispatch_lst,dispatch_id_lst),
+                               dispatch_dtl_lst=dispatch_dtl_lst)
     else:
         return render_template('/main_menu.html')
 

@@ -46,7 +46,7 @@ class DispatchDetail:
             cursor.execute("select * from dispatch_detail where smpl_no = %s", (smpl_no,))
             user_data = cursor.fetchall()
             for detail in user_data:
-                dispatch_detail = DispatchDetail(detail[1], detail[2], float(detail[3]), float(detail[4]),
+                dispatch_detail = DispatchDetail(int(detail[1]), detail[2], float(detail[3]), float(detail[4]),
                                                  float(detail[5]), int(detail[6]), float(detail[7]), detail[8],
                                                  detail[9])
                 dispatch_detail_lst.append(dispatch_detail)

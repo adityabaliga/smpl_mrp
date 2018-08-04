@@ -44,10 +44,14 @@ class SlitterBatch:
                            'slitter_2, slitter_3, slitter_4, slitter_5, slitter_6, slitter_7, slitter_8, slitter_9, '
                            'slitter_10, slitter_11, slitter_12, slitter_13, slitter_14, slitter_15, slitter_16, '
                            'slitter_17, slitter_18, slitter_19, slitter_20, slitter_21, slitter_22, slitter_23, '
-                           'slitter_24, slitter_25, slitter_26, slitter_27, slitter_28, slitter_29, slitter_30) values'
+                           'slitter_24, slitter_25, slitter_26, slitter_27, slitter_28, slitter_29, slitter_30,'
+                           'slitter_31, slitter_32, slitter_33, slitter_34, slitter_35, slitter_36, slitter_37'
+                           ', slitter_38, slitter_39, slitter_40, slitter_41, slitter_42, slitter_43, slitter_44'
+                           ', slitter_45, slitter_46, slitter_47, slitter_48, slitter_49, slitter_50) values'
                            '(%s, %s, %s, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,'
-                           ' 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)',(slitter_batch_no,
-                                                                                                     new_od, return_date))
+                           ' 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, '
+                           '0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)'
+                           ,(slitter_batch_no, new_od, return_date))
 
 
     def get_slitter_grinding(self):

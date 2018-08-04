@@ -75,8 +75,8 @@ class FileUploader:
     def get_files_for_smpl_no(cls,smpl_no):
         file_list = []
         path = FileUploader.upload_path + smpl_no #+ '/*.*'
-
-        file_list = os.listdir(path)
+        if os.path.isdir(path):
+            file_list = os.listdir(path)
         #file_list = glob.glob(path)
         if file_list:
             return file_list
