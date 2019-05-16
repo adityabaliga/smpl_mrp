@@ -24,9 +24,9 @@ function for_packets_and_weight(table_id,table_row,operation){
    // Get the row where the change was made and calculate the weight of the processed material
 	var rowCount = table_row.offsetParent.parentElement.rowIndex;
 	var last_row = document.getElementById(table_id).rows[rowCount];
-	var numbers = Number(last_row.cells[4].lastChild.value);
+	//var numbers = Number(last_row.cells[3].lastChild.value);
 	var thk = Number(document.getElementById('thickness').value);
-	var weight_pos = 6;
+	//var weight_pos = 5;
 
     if (operation == "Reshearing"){
         var width =  Number(last_row.cells[0].lastChild.value);
@@ -36,8 +36,8 @@ function for_packets_and_weight(table_id,table_row,operation){
 
     var length =  Number(last_row.cells[1].lastChild.value);
 
-    numbers =  Number(last_row.cells[4].lastChild.value);
-    weight_pos = 6;
+    numbers =  Number(last_row.cells[3].lastChild.value);
+    weight_pos = 5;
 
     var weight = (thk * width * length * numbers * 0.00000785)/1000;
     last_row.cells[weight_pos].lastChild.value = weight.toFixed(3);
@@ -52,8 +52,8 @@ function calculate_wt_and_cuts(table_id){
     var total_processed_wt =0;
     var total_cuts = 0;
     for (var i = 1, row; row = table.rows[i]; i++) {
-        total_processed_wt += Number(row.cells[6].lastChild.value);
-        total_cuts += Number(row.cells[4].lastChild.value);
+        total_processed_wt += Number(row.cells[5].lastChild.value);
+        total_cuts += Number(row.cells[3].lastChild.value);
     }
     var rm_weight = Number(document.getElementById("weight").value);
     var scrap_wt = rm_weight - total_processed_wt;
@@ -117,7 +117,7 @@ function get_part_weight(){
 
     var total_processed_wt = thickness * width * total_length * 0.00000785;
     var coil_length = rm_wt/thickness/width/0.00000785;
-    document.getElementById("processed_wt").value = total_processed_wt.toFixed(3);
+    document.getElementById("total_processed_wt").value = total_processed_wt.toFixed(3);
 
 }
 

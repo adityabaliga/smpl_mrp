@@ -168,3 +168,12 @@ class Incoming:
         for smpl_no in user_data:
             smpl_no_lst.append(smpl_no[0])
         return smpl_no_lst
+
+    @classmethod
+    def get_daily_report(cls, report_date):
+        with CursorFromConnectionFromPool() as cursor:
+            cursor.execute("select customer, sum(weight), unit from incoming where incoming_date = %s group by "
+                           "customer, unit",(report_date,))
+            user_data=cursor.fetchall()
+
+        return user_data

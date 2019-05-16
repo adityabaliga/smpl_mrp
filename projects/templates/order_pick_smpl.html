@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>SMPL MRP - Orders by Machine</title>
+    <title>SMPL MRP - Place Order</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
-<style>
+    <style>
         hr.style1{
 	        border-top: 15px solid #4d0000;
             }
@@ -27,7 +27,7 @@
     </style>
 
 </head>
-<form action="/processing_load">
+<form action="/order">
     <div class="topnav" id="myTopnav">
         <br>
         <table>
@@ -38,47 +38,30 @@
             <a href="\logout">Logout</a></div></td>
         </table>
     </div>
+
     <hr class ="style1">
     <!--select name ="select_smpl"-->
-        <input type = "text" name = "operation" id="operation" value = "{{operation}}" hidden >
-	<table class = "table table-sm">
+        <table class = "table table-sm">
             <tr>
                 <th>SMPL no.</th>
                 <th>Customer</th>
                 <th>Weight in MT</th>
                 <th>Size</th>
-
             </tr>
-
-        {% for cs_id, cs, expected_date in cs_lst %}
+        {% for cs in smpl_lst %}
             <tr>
-                <td><input type = "radio" name = "select_smpl" value = "{{cs_id}}" required>  {{cs.smpl_no}}</input></td>
+                <td><input type = "radio" name = "select_smpl" value = "{{cs.smpl_no}}">  {{cs.smpl_no}}</input></td>
                 <td>{{cs.customer}}</td>
                 <td>{{cs.weight}}</td>
                 <td>{{cs.thickness}} x {{cs.width}} x {{cs.length}}</td>
-                <td>{{expected_date}}</td>
             </tr>
         {% endfor %}
-
-        {% for cs_id_not_ready, cs_not_ready, expected_date_not_ready in cs_not_ready_lst %}
-            <tr>
-                <td>{{cs_not_ready.smpl_no}}</td>
-                <td>{{cs_not_ready.customer}}</td>
-                <td>{{cs_not_ready.weight}}</td>
-                <td>{{cs_not_ready.thickness}} x {{cs_not_ready.width}} x {{cs_not_ready.length}}</td>
-                <td>{{expected_date_not_ready}}</td>
-            </tr>
-        {% endfor %}
-
+    <!--/select-->
         </table>
 
 
     <td>
         <input class="btn btn-default" type="submit" value="Select">
     </td>
-
-    <hr>
-
 </form>
-
 </html>

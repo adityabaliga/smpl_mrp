@@ -47,6 +47,7 @@
 
         <tr>
             <th><h3>Incoming</h3></th>
+            <th><h3>Order</h3></th>
             <th><h3>Upload</h3></th>
         </tr>
         <tr>
@@ -60,15 +61,23 @@
                 <br>
             <a href ="transfer_material">Transfer Material</a>
             </td>
+            <td><a href="\smpl_for_order">Place Order</a>
+                <br>
+            <a href ="\smpl_for_modify_order">View/Delete Order</a>
+            </td>
             <td><a href="\upload_pick_smpl">Upload Documents</a>
                 <br>
 
-            <td>
+            </td>
         </tr>
         {% endif %}
         <tr>
+
             <th><h3>Processing</h3></th>
-            <th><h3>Stock</h3></th>
+            <th><h3>SMPL History</h3></th>
+            <th><h3>Slitter Maintenance</h3></th>
+
+
         </tr>
         <tr>
             <td>
@@ -80,37 +89,34 @@
                 <a href="\orders_by_machine?select_operation=Levelling">Levelling</a><br>
             </td>
             <td>
-                <a href="\check_stock">Unit 1</a><br>
-                <a href="\check_stock">Unit 2</a><br>
-                <a href="\check_stock">Consolidated</a><br>
+                <a href="/enter_smpl_no">SMPL History</a><br>
             </td>
-        </tr>
-        <tr>
-            <th><h3>Slitter Maintenance</h3></th>
-            <th><h3>SMPL History</h3></th>
-
-        </tr>
-        <tr>
             <td>
                 <a href="/pick_slitting_batch">Slitting Maintenance</a><br>
             </td>
-            <td>
-                <a href="/enter_smpl_no">SMPL History</a><br>
-            </td>
+
+
         </tr>
+
         {% if current_user.user_type == "all" or current_user.user_type == "incoming_head" or current_user.user_type == "plan_head"  %}
         <tr>
+            <th><h3>Stock</h3></th>
             <th><h3>Dispatch</h3></th>
             <th><h3>Reports</h3></th>
         </tr>
         <tr>
+             <td>
+                <a href="\check_stock">Unit 1</a><br>
+                <a href="\check_stock">Unit 2</a><br>
+                <a href="\check_stock">Consolidated</a><br>
+            </td>
             <td>
                 <a href="/dispatch_pick_customer">Dispatch Entry</a><br>
                 <a href="/display_dispatch_pick_day">Dispatch View</a><br>
 
             </td>
             <td>
-                <a href="">Daily</a><br>
+                <a href="/daily_report_pick_date">Daily</a><br>
                 <a href="">Monthly</a><br>
 
             </td>

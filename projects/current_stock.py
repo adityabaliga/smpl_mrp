@@ -53,9 +53,28 @@ class CurrentStock:
             else:
                 return None
 
+    @classmethod
+    def smpl_list_for_place_order(cls):
+        user_data = []
+        cs_lst = []
+        with CursorFromConnectionFromPool() as cursor:
+            cursor.execute("select * from current_stock where status = 'RM' or status = 'HC' order by smpl_no asc")
+            user_data = cursor.fetchall()
+
+        if user_data:
+            for lst in user_data:
+                cs = CurrentStock(smpl_no=lst[1], weight=Decimal(lst[2]), numbers=int(lst[3]), width=Decimal(lst[4]),
+                                  length=Decimal(lst[5]), status=lst[6], customer=lst[7], thickness=Decimal(lst[8]),
+                                  grade=lst[9], unit=lst[10])
+                cs_lst.append(cs)
+
+            return cs_lst
+        else:
+            return None
+
 
     @classmethod
-    def smpl_list_for_place_order(cls, operation, unit):
+    def smpl_list_for_processing(cls, operation, unit):
         user_data = []
         cs_lst = []
         cs_id_lst = []
@@ -84,20 +103,20 @@ class CurrentStock:
             return None
 
     @classmethod
-    def load_smpl_by_smplno(cls,smpl_no):
+    def load_smpl_by_smplno(cls,smpl_no,length, width):
         user_data = []
         cs_lst = []
         cs_id_lst = []
         with CursorFromConnectionFromPool() as cursor:
-            cursor.execute("select * from current_stock where smpl_no = %s",(smpl_no,))
-            user_data = cursor.fetchall()
+            cursor.execute("select * from current_stock where smpl_no = %s and length = %s and width = %s",(smpl_no, length, width))
+            lst = cursor.fetchone()
 
-            for lst in user_data:
-                cs = CurrentStock(smpl_no=lst[1], weight=Decimal(lst[2]), numbers=int(lst[3]), width=Decimal(lst[4]),
-                                  length=Decimal(lst[5]), status=lst[6], customer=lst[7], thickness=Decimal(lst[8]),
-                                  grade=lst[9], unit=lst[10])
-                cs_lst.append(cs)
-                cs_id_lst.append(lst[0])
+
+            cs = CurrentStock(smpl_no=lst[1], weight=Decimal(lst[2]), numbers=int(lst[3]), width=Decimal(lst[4]),
+                              length=Decimal(lst[5]), status=lst[6], customer=lst[7], thickness=Decimal(lst[8]),
+                              grade=lst[9], unit=lst[10])
+            cs_lst.append(cs)
+            cs_id_lst.append(lst[0])
 
             return zip(cs_id_lst, cs_lst)
 

@@ -52,3 +52,17 @@ class DispatchDetail:
                 dispatch_detail_lst.append(dispatch_detail)
 
         return dispatch_detail_lst
+
+    @classmethod
+    def get_daily_report(cls, dispatch_id):
+        dispatch_detail_lst = []
+        with CursorFromConnectionFromPool() as cursor:
+            cursor.execute("select * from dispatch_detail where dispatch_id = %s", (dispatch_id,))
+            user_data = cursor.fetchall()
+            for detail in user_data:
+                dispatch_detail = DispatchDetail(int(detail[1]), detail[2], float(detail[3]), float(detail[4]),
+                                                 float(detail[5]), int(detail[6]), float(detail[7]), detail[8],
+                                                 detail[9])
+                dispatch_detail_lst.append(dispatch_detail)
+
+        return dispatch_detail_lst
