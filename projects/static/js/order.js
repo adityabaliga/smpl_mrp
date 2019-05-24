@@ -622,14 +622,14 @@ var controller = (function(orderCtrl, UICtrl) {
             ip = input_material[i].value;
             ip = ip.split(" x ");
             if(document.querySelector(DOM.currentOperation).value === "Narrow_CTL" || document.querySelector(DOM.currentOperation).value === "CTL" || document.querySelector(DOM.currentOperation).value === "Slitting" || document.querySelector(DOM.currentOperation).value === "Mini_Slitting"){
-                if(ip[1] != "0.0"){
+                if(parseFloat(ip[1]) != 0){
                     input_material[i].disabled = true;
                 }else{
                     input_material[i].disabled = false;
                 }
             }
             if(document.querySelector(DOM.currentOperation).value === "Reshearing"){
-                if(ip[1] == "0.0"){
+                if(parseFloat(ip[1]) == 0){
                     input_material[i].disabled = true;
                 }else{
                     input_material[i].disabled = false;
@@ -875,7 +875,7 @@ var controller = (function(orderCtrl, UICtrl) {
         var DOM = UICtrl.getDOMstrings();
         if(document.querySelector(DOM.currentOperation).value === "Slitting" || document.querySelector(DOM.currentOperation).value === "Mini_Slitting"){
             document.querySelector(DOM.currentNoOfPkts).value = document.querySelector(DOM.currentNoOfParts_).value;
-            document.querySelector(DOM.currentLength).value = "0";
+            document.querySelector(DOM.currentLength).value = "0.0";
             onChangeNoOfParts();
 
 
@@ -1149,7 +1149,7 @@ var controller = (function(orderCtrl, UICtrl) {
         var orderString, DOM;
         DOM = UICtrl.getDOMstrings();
         orderString = orderCtrl.makeOrderString();
-        //console.log(orderString);
+        console.log(orderString);
         document.querySelector(DOM.orderString).value = orderString;
     };
 

@@ -17,6 +17,7 @@ class ProcessingDetail:
         self.input_width = input_width
         self.input_length = input_length
         self.order_detail_id = order_detail_id
+        #self.lamination = lamination
 
 
 

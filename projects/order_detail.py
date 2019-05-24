@@ -35,6 +35,7 @@ class OrderDetail:
             cursor.execute('select * from order_details where smpl_no = %s and order_id = %s', (smpl_no, order_id))
             user_data = cursor.fetchall()
             order_detail_lst = []
+            order_detail_id_lst = []
             for lst in user_data:
                 order_detail = OrderDetail(order_id=lst[1], smpl_no=lst[2], operation=lst[3], ms_width=lst[4],
                                            ms_length=lst[5], cut_width=lst[6], cut_length=lst[7], processing_wt=lst[8],
@@ -43,7 +44,8 @@ class OrderDetail:
                                            packing=lst[13], remarks=lst[14], status=lst[15], stage_no=lst[16],
                                            tolerance=lst[17], lamination=lst[18], wt_per_pkt=lst[19], internal_dia=lst[20])
                 order_detail_lst.append(order_detail)
-        return order_detail_lst
+                order_detail_id_lst.append(lst[0])
+        return zip(order_detail_id_lst,order_detail_lst)
 
     @classmethod
     def load_ids_from_db(cls, smpl_no, order_id):
@@ -93,11 +95,14 @@ class OrderDetail:
     def modify_detail(self, order_detail_id):
         with CursorFromConnectionFromPool() as cursor:
             cursor.execute(
-                "update order_details set operation = %s, ms_width = %s, ms_length = %s, cc_width = %s, cc_length = %s, processing_wt = %s, processing_numbers = %s, fg_yes_no = %s, no_per_packet= %s, no_of_packets = %s, packing_type = %s, remarks = %s, status = %s, stage_no = %s, positive_tolerance = %s, negative_tolerance = %s where order_detail_id = %s",
+                "update order_details set operation = %s, ms_width = %s, ms_length = %s, cc_width = %s, cc_length = %s,"
+                "processing_wt = %s, processing_numbers = %s, fg_yes_no = %s, no_per_packet= %s, no_of_packets = %s, "
+                "packing_type = %s, remarks = %s, status = %s, stage_no = %s, tolerance = %s, lamination = %s, "
+                "wt_per_pkt = %s, internal_dia = %s where order_detail_id = %s",
                 (self.operation, self.ms_width, self.ms_length, self.cut_width, self.cut_length, self.processing_wt,
                  self.numbers, self.fg_yes_no, self.no_per_packet, self.no_of_packets, self.packing, self.remarks,
                  self.status, self.stage_no, self.tolerance, self.lamination, self.wt_per_pkt,
-                 self.internal_dia, order_detail_id))
+                 self.internal_dia, int(order_detail_id)))
 
     @classmethod
     def smpl_lst_by_operation(cls, status, operation):

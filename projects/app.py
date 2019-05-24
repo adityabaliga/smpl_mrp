@@ -681,9 +681,11 @@ def processing_load():
     order_detail_lst = OrderDetail.load_from_db(cs_rm.smpl_no, order_id)
 
     order_detail_lst_by_operation = []
-    for order_detail in order_detail_lst:
+    order_detail_id_lst_by_operation = []
+    for order_detail_id, order_detail in order_detail_lst:
         if order_detail.operation.startswith(operation) and order_detail.status == 'Ready':
             order_detail_lst_by_operation.append(order_detail)
+            order_detail_id_lst_by_operation.append(order_detail_id)
             numbers += order_detail.numbers
             stage_no = order_detail.stage_no
             ms_width = order_detail.ms_width
@@ -705,14 +707,22 @@ def processing_load():
         unit = current_user.unit
         return render_template('processing_ctl.html', incoming=incoming, operation=operation,
                                processing_details_lst=processing_detail_lst, cs_rm=cs_rm, cs_rm_id=cs_rm_id, order=order,
-                               order_detail_lst=order_detail_lst_by_operation, numbers=numbers, order_id=order_id,
-                               stage_no=stage_no, completed_processing_details_lst = zip(order_detail_lst_by_operation,
+                               order_detail_lst=zip(order_detail_id_lst_by_operation,order_detail_lst_by_operation),
+                               _order_detail_lst=zip(order_detail_id_lst_by_operation, order_detail_lst_by_operation),
+                               numbers=numbers, order_id=order_id, stage_no=stage_no,
+                               completed_processing_details_lst = zip(order_detail_lst_by_operation,
                                                                                 completed_processing_wt_lst,
                                                                                 completed_processing_numbers_lst))
 
     if operation == "Narrow CTL":
         return render_template('processing_nctl.html', incoming=incoming, operation=operation,
-                               processing_details_lst=processing_detail_lst, cs_rm=cs_rm, cs_rm_id=cs_rm_id)
+                               processing_details_lst=processing_detail_lst, cs_rm=cs_rm, cs_rm_id=cs_rm_id, order=order,
+                               order_detail_lst=zip(order_detail_id_lst_by_operation,order_detail_lst_by_operation),
+                               _order_detail_lst=zip(order_detail_id_lst_by_operation, order_detail_lst_by_operation),
+                               numbers=numbers, order_id=order_id, stage_no=stage_no,
+                               completed_processing_details_lst = zip(order_detail_lst_by_operation,
+                                                                                completed_processing_wt_lst,
+                                                                                completed_processing_numbers_lst))
 
     if operation == 'Slitting' or operation == 'Mini Slitting':
         # if operation == 'Slitting':
@@ -720,11 +730,23 @@ def processing_load():
         # if operation == 'Mini Slitting':
         #    _operation = 'Mini Slitting'
         return render_template('processing_slit.html', incoming=incoming, operation=operation,
-                               processing_details_lst=processing_detail_lst, cs_rm=cs_rm, cs_rm_id=cs_rm_id)
+                               processing_details_lst=processing_detail_lst, cs_rm=cs_rm, cs_rm_id=cs_rm_id, order=order,
+                               order_detail_lst=zip(order_detail_id_lst_by_operation,order_detail_lst_by_operation),
+                               _order_detail_lst=zip(order_detail_id_lst_by_operation, order_detail_lst_by_operation),
+                               numbers=numbers, order_id=order_id, stage_no=stage_no,
+                               completed_processing_details_lst = zip(order_detail_lst_by_operation,
+                                                                                completed_processing_wt_lst,
+                                                                                completed_processing_numbers_lst))
 
     if operation == 'Reshearing':
         return render_template('processing_reshearing.html', incoming=incoming, operation=operation,
-                               processing_details_lst=processing_detail_lst, cs_rm=cs_rm, cs_rm_id=cs_rm_id)
+                               processing_details_lst=processing_detail_lst, cs_rm=cs_rm, cs_rm_id=cs_rm_id, order=order,
+                               order_detail_lst=zip(order_detail_id_lst_by_operation,order_detail_lst_by_operation),
+                               _order_detail_lst=zip(order_detail_id_lst_by_operation, order_detail_lst_by_operation),
+                               numbers=numbers, order_id=order_id, stage_no=stage_no,
+                               completed_processing_details_lst = zip(order_detail_lst_by_operation,
+                                                                                completed_processing_wt_lst,
+                                                                                completed_processing_numbers_lst))
 
 
 # 1. Get processing and processing details from the screen
@@ -741,6 +763,7 @@ def submit_processing():
         input_size = request.form['input_material']
         output_width_lst = request.form.getlist('output_width')
         output_length_lst = request.form.getlist('output_length')
+        order_detail_id_lst = request.form.getlist('order_detail_id')
 
         fg_yes_no_lst = request.form.getlist('fg_yes_no')
         actual_no_of_pieces_lst = request.form.getlist('actual_no_of_pieces')
@@ -783,9 +806,9 @@ def submit_processing():
         if operation == "CTL" or operation == "Reshearing" or operation == "Narrow CTL":
             lamination_lst = request.form.getlist('lamination')
             for output_width, output_length, actual_no_of_pieces, actual_no_of_packets, processed_wt, \
-                remarks, fg_yes_no, lamination in zip(output_width_lst, output_length_lst, actual_no_of_pieces_lst,
+                remarks, lamination, order_detail_id, fg_yes_no in zip(output_width_lst, output_length_lst, actual_no_of_pieces_lst,
                                                       actual_no_of_packets_lst, processed_wt_lst, remarks_lst,
-                                                      fg_yes_no_lst, lamination_lst):
+                                                      lamination_lst, order_detail_id_lst, fg_yes_no_lst):
                 ip_size = input_size.split('x')
                 ms_width = ip_size[0]
                 ms_length = ip_size[1]
@@ -795,9 +818,10 @@ def submit_processing():
 
                 if processed_wt != '':
                     # Get mother size and cut size from the screen. Create processing detail and then update to db
-                    processing_detail = ProcessingDetail(smpl_no, operation, machine, processing_id, ms_width,
-                                                         ms_length, output_width, output_length, actual_no_of_pieces,
-                                                         actual_no_of_packets, processed_wt, remarks)
+                    processing_detail = ProcessingDetail(smpl_no, operation, machine, processing_id, output_width,
+                                                         output_length, actual_no_of_pieces,
+                                                         actual_no_of_packets, remarks, processed_wt, ms_width,
+                                                         ms_length, order_detail_id)
                     processing_detail.save_to_db()
 
                     if operation == "Reshearing":
@@ -817,7 +841,7 @@ def submit_processing():
                         processed_wt = Decimal(processed_wt) - round(total_scrap,3)
 
                     elif operation == "Narrow CTL":
-                        no_of_ms_consumed = rm_wt/processed_wt
+                        no_of_ms_consumed = rm_wt/Decimal(processed_wt)
 
                     else:
                         no_of_ms_consumed = actual_no_of_pieces
@@ -845,15 +869,21 @@ def submit_processing():
                                              output_width, output_length, fg_yes_no, grade, unit)
                         cs_cc.save_to_db()
 
+                    # This checks if detail is complete by comparing the processed weight and order detail weight.
+                    # If the order detail is complete, it checks if all the order details in that stage are complete (check_stage_complete)
+                    # If all the order details in that stage are complete, it makes the order details of the next stage ready for production
+                    # If this is the last stage of the order, it marks the order as closed
+                    OrderDetail.detail_complete(order_detail_id)
+
 
         if operation == "Slitting" or operation == "Mini Slitting":
             ip_size = input_size.split('x')
             ms_width = ip_size[0]
             ms_length = ip_size[1]
 
-            # actual_no_of_pieces = length processed per part
-            # actual_no_of_packets = no of parts
-            # numbers = no of slits
+            # actual_no_of_pieces = no of slits * no of parts
+            # actual_no_of_packets = length_per_part
+            # numbers =
             total_length = float(request.form['total_length'])
 
             no_of_parts = int(actual_no_of_packets_lst[0])
@@ -862,8 +892,8 @@ def submit_processing():
             # processed_wt = processed_wt_lst[0]
             remarks = remarks_lst[0]
             output_length = 0
-            for output_width, fg_yes_no, no_of_slits in zip(
-                    output_width_lst, fg_yes_no_lst, no_of_slits_lst):
+            for output_width, fg_yes_no, no_of_slits, order_detail_id in zip(
+                    output_width_lst, fg_yes_no_lst, no_of_slits_lst, order_detail_id_lst):
 
                 # Get number of coils produced for size = no of slits x no of parts
                 no_of_coils = int(no_of_slits) * no_of_parts
@@ -873,9 +903,10 @@ def submit_processing():
 
                 # Processing details updated to db
                 if processed_wt > 0:
-                    processing_detail = ProcessingDetail(smpl_no, operation, machine, processing_id, ms_width,
-                                                         ms_length, output_width, output_length, length_per_part,
-                                                         no_of_coils, processed_wt, remarks)
+                    processing_detail = ProcessingDetail(smpl_no, operation, machine, processing_id, output_width,
+                                                         output_length, no_of_coils, length_per_part,
+                                                         remarks, processed_wt, ms_width, ms_length, order_detail_id)
+
 
                     processing_detail.save_to_db()
 
@@ -903,7 +934,7 @@ def submit_processing():
                     # If all the order details in that stage are complete, it makes the order details of the next stage 
                     # ready for production
                     # If this is the last stage of the order, it marks the order as closed
-                    # OrderDetail.detail_complete(order_detail_id)
+                    OrderDetail.detail_complete(order_detail_id)
 
             # This is for the slitter maintenance
             # Get the slitter batches and numbers used in slitting
@@ -924,6 +955,8 @@ def submit_processing():
             CurrentStock.delete_record(cs_rm_id)
 
         return render_template('/main_menu.html', message="Processing for " + smpl_no + " entered.")
+
+
 
 
 @app.route('/check_stock', methods=['GET', 'POST'])
