@@ -1,5 +1,6 @@
 from database import CursorFromConnectionFromPool
 from decimal import *
+from order_detail import OrderDetail
 
 
 class CurrentStock:
@@ -39,6 +40,7 @@ class CurrentStock:
         cs_lst = []
         with CursorFromConnectionFromPool() as cursor:
             cursor.execute("select * from current_stock where status= 'Order' order by smpl_no asc")
+            #cursor.execute("select * from current_stock order by smpl_no asc")
             user_data = cursor.fetchall()
 
             if user_data:
@@ -150,7 +152,7 @@ class CurrentStock:
                 if sign == "minus":
                     new_weight = weight - Decimal(processed_wt)
                     new_weight = round(new_weight,3)
-                    if Decimal(length) > 0:
+                    if Decimal(length) > 0 or numbers>1:
                         new_numbers = numbers - Decimal(actual_no_of_pieces)
                     else:
                         new_numbers = numbers
@@ -163,7 +165,9 @@ class CurrentStock:
                         new_numbers = numbers
 
                 if new_weight < 0.15:
+
                     cursor.execute("delete from current_stock where smpl_no = %s and width = %s and length = %s",(smpl_no,width,length))
+
                     return "complete"
                 else:
                     cursor.execute("update current_stock set weight = %s, numbers = %s where smpl_no = %s and width = %s and length = %s",(new_weight,new_numbers,smpl_no,width,length))

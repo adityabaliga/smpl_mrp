@@ -82,14 +82,15 @@
 
     </tr>
         <td>SMPL No</td>
-        <td><input type="text" name="smpl_no" value = "{{smpl_no}}" readonly></td>
+        <td><input type="text" name="smpl_no" class = "smpl_no" value = "{{smpl_no}}" readonly></td>
 
         <td >Customer</td>
-        <td><input type="text" name="customer" value = "{{customer}}" readonly></td>
+        <td><input type="text" name="customer" class = "customer" value = "{{customer}}" readonly></td>
 
         <td>Grade</td>
-        <td><input type="text"  name="grade"  value = "{{grade}}" readonly></td>
+        <td><input type="text"  name="grade"  class = "grade" value = "{{grade}}" readonly></td>
     </tr>
+
     <tr>
         <td>Thickness</td>
         <td><input type="text"  name="thickness" class = "thickness" value = "{{thickness}}"  readonly></td>
@@ -98,7 +99,7 @@
         <td><input type="text"  name="width" class = "width" value = "{{width}}" readonly></td>
 
         <td>Length</td>
-        <td><input type="text"  name="length" id="length" value = "{{length}}" readonly></td>
+        <td><input type="text"  name="length" class = "length" id="length" value = "{{length}}" readonly></td>
     </tr>
     <tr>
 
@@ -121,10 +122,10 @@
         <td><input type="number"  name="processing_wt"  id="processing_wt" class = "processing_wt" step="0.001" required></td>
 
         <td>Order Date</td>
-        <td><input type="date"  id = "order_date" name="order_date" required></td>
+        <td><input type="date"  id = "order_date" class ="order_date" name="order_date" required></td>
 
         <td>Expected Date</td>
-        <td><input type="date"  id = "expected_date" name="expected_date" required></td>
+        <td><input type="date"  id = "expected_date" class ="expected_date" name="expected_date" required></td>
     </tr>
 
     </table>
@@ -144,8 +145,8 @@
                 <option selected disabled>Select Operation</option>
                 <option value="CTL">CTL</option>
                 <option value="Slitting">Slitting</option>
-                <option value="Mini Slitting">Mini Slitting</option>
-                <option value="Narrow CTL">Narrow CTL</option>
+                <option value="Mini_Slitting">Mini Slitting</option>
+                <option value="Narrow_CTL">Narrow CTL</option>
                 <!--option value="Trap CTL">Trap CTL</option-->
                 <option value="Reshearing">Reshearing</option>
                 <option value="Lamination">Lamination</option>
@@ -165,7 +166,7 @@
         <div class="current_op_slitting" hidden>
             <span class="processing_wt_for_op_hdr" style = "padding-right:20px;">
                 <span><b>Processing Wt</b></span>
-                <input type="number" class ="processing_wt_for_op" value="">
+                <input type="number" class ="processing_wt_for_op" value="" step="0.001">
             </span>
             <span class="available_width_hdr" style = "padding-right:20px;">
                 <span><b>Available Width</b></span>

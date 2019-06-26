@@ -32,7 +32,9 @@ class OrderDetail:
     @classmethod
     def load_from_db(cls, smpl_no, order_id):
         with CursorFromConnectionFromPool() as cursor:
-            cursor.execute('select * from order_details where smpl_no = %s and order_id = %s', (smpl_no, order_id))
+            cursor.execute('select * from order_details where smpl_no = %s and order_id = %s order by stage_no, '
+                           'operation, order_detail_id asc',
+                           (smpl_no, order_id))
             user_data = cursor.fetchall()
             order_detail_lst = []
             order_detail_id_lst = []
@@ -173,3 +175,27 @@ class OrderDetail:
                         cursor.execute("update order_details set status = 'Ready' where order_detail_id = %s",(order_detail_id,))
                 else:
                     cursor.execute("update order_header set status='Closed' where order_id = %s",(order_id,))
+
+
+    @classmethod
+    def complete_processing_on_del(cls, smpl_no, width, length):
+        with CursorFromConnectionFromPool() as cursor:
+            cursor.execute("select * from order_details where smpl_no = %s and ms_width = %s and ms_length = %s",(smpl_no, width, length))
+            od_lst = cursor.fetchall()
+        if od_lst:
+            for user_data in od_lst:
+                order_detail = OrderDetail(order_id=user_data[1], smpl_no=user_data[2], operation=user_data[3],
+                                           ms_width=user_data[4],
+                                           ms_length=user_data[5], cut_width=user_data[6], cut_length=user_data[7],
+                                           processing_wt=float(user_data[8]),
+                                           numbers=user_data[9], fg_yes_no=user_data[10],
+                                           no_per_packet=user_data[11],
+                                           no_of_packets=user_data[12],
+                                           packing=user_data[13], remarks=user_data[14], status=user_data[15],
+                                           stage_no=user_data[16],
+                                           tolerance=user_data[17], lamination=user_data[18],
+                                           wt_per_pkt=user_data[19],
+                                           internal_dia=user_data[20])
+                order_detail.status = "Completed"
+                order_detail.modify_detail(int(user_data[0]))
+                OrderDetail.check_stage_complete(order_detail.order_id,order_detail.stage_no)

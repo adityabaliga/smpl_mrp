@@ -7,7 +7,7 @@ class Database:
     @classmethod
     def initialise(cls):
         cls.__connection_pool = pool.SimpleConnectionPool(3, 10, user='postgres', password='smpl@509',
-                                                          database='smpl',
+                                                          database='smpl_prodn',
                                                           host='localhost')
 
     @classmethod

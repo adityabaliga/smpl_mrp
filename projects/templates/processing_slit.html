@@ -134,7 +134,8 @@
             <th style="width:100px;">Remarks</th>
 
         </tr>
-    {% for order_detail_id, order_detail in order_detail_lst %}
+
+        {% for order_detail_id, order_detail in order_detail_lst %}
         <tr>
             <td>
                 <input type = "text" name = "input_material" id = "input_material_order" style="width:150px;" value = "{{order_detail.ms_width}} x {{order_detail.ms_length}}" readonly>
@@ -219,7 +220,7 @@
             <th>Total Length Processed</th>
             <td><input type = "number" name = "total_length" id="total_length" onfocusout ="get_part_weight('numbers_pkts1')"></td>
             <th>No. of Parts</th>
-            <td><input type = "number" name ="actual_no_of_packets" id = "actual_no_of_packets" value="1"></td>
+            <td><input type = "number" name ="actual_no_of_packets" id = "actual_no_of_packets" value="1" onfocusout ="get_part_weight('numbers_pkts1')"></td>
 
             <th></th>
             <td><input type = "number" name = "actual_no_of_pieces" id = "actual_no_of_pieces" hidden></td>

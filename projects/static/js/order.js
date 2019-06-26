@@ -245,11 +245,16 @@ var orderController = (function () {
 var UIController = (function() {
    var DOMStrings= {
        orderForm: '.order_form',
+       smpl_no : '.smpl_no',
+       customer : '.customer',
+       grade : '.grade',
        thickness : '.thickness',
        mc_weight : '.available_wt',
        mc_width : '.width',
        mc_length : 'length',
        coilProcWtID : 'processing_wt',
+       order_date : '.order_date',
+       expected_date : '.expected_date',
        currentOperation : '.current_op_name',
        currentStageNo : '.current_op_stage',
        currentInputMaterial : '.current_op_ip_mtrl',
@@ -381,7 +386,7 @@ var UIController = (function() {
            document.querySelector(DOMStrings.currentFG_WIP).value = "FG";
            document.querySelector(DOMStrings.currentWidth).value = "";
            document.querySelector(DOMStrings.currentLength).value = "";
-           document.querySelector(DOMStrings.currentLami).value = "no-lami";
+           document.querySelector(DOMStrings.currentLami).value = "No Lamination";
            document.querySelector(DOMStrings.currentTolerance).value = "";
            //document.querySelector(DOMStrings.currentIDia).value = "";
            document.querySelector(DOMStrings.currentProcWt).value = "";
@@ -391,6 +396,9 @@ var UIController = (function() {
            document.querySelector(DOMStrings.currentNoOfPkts).value = "";
            document.querySelector(DOMStrings.currentPkg).value = "";
            document.querySelector(DOMStrings.currentRemarks).value ="";
+           document.querySelector(DOMStrings.currentPkg).hidden = false;
+           document.querySelector(DOMStrings.currentPkgHdr).hidden = false;
+
        },
 
 
@@ -495,6 +503,10 @@ var UIController = (function() {
            document.querySelector(DOMStrings.currentIDia).selectedIndex = 0;
 
            document.querySelector(DOMStrings.currentNoOfParts_).value = "";
+
+           document.querySelector(DOMStrings.currentAvailableWidth).value = "";
+
+           document.querySelector(DOMStrings.currentOpProcWt).value = "";
 
        }
 
@@ -802,6 +814,7 @@ var controller = (function(orderCtrl, UICtrl) {
         DOM = UICtrl.getDOMstrings();
         input_mtrl = document.querySelector(DOM.currentInputMaterial).value;
         input_mtrl = input_mtrl.split(" x ");
+        console.log(document.querySelector(DOM.currentOperation).value);
         if(document.querySelector(DOM.currentOperation).value === "Slitting" || document.querySelector(DOM.currentOperation).value === "Mini_Slitting"){
 
                 document.querySelector(DOM.currentAvailableWidth).value = input_mtrl[0];
@@ -818,6 +831,14 @@ var controller = (function(orderCtrl, UICtrl) {
         if(document.querySelector(DOM.currentFG_WIP).value === "WIP"){
             document.querySelector(DOM.currentPkg).hidden = true;
             document.querySelector(DOM.currentPkgHdr).hidden = true;
+            document.querySelector(DOM.currentPkg).required = false;
+            //document.querySelector(DOM.currentNoOfPkts).value = "1";
+
+        }
+        if(document.querySelector(DOM.currentFG_WIP).value === "FG"){
+            document.querySelector(DOM.currentPkg).hidden = false;
+            document.querySelector(DOM.currentPkgHdr).hidden = false;
+            document.querySelector(DOM.currentPkg).required = true;
             //document.querySelector(DOM.currentNoOfPkts).value = "1";
 
         }
@@ -927,11 +948,15 @@ var controller = (function(orderCtrl, UICtrl) {
         // This function was initially called when no of parts in size was changed. But, the coil can have only one no. of parts
         // So, we placed it in operation and copy the no of parts from there. So now, this function is called when no of slits is changed
         //calculate length/part and weight/coil for slitting and mini slitting
-        var wt_of_slit,length_of_slit, length_per_part, wt_per_part, processing_wt;
+        var wt_of_slit,length_of_slit, length_per_part, wt_per_part, processing_wt, input_material, ip_width;
         var DOM = UICtrl.getDOMstrings();
 
+        input_material = document.querySelector(DOM.currentInputMaterial).value;
+        input_material = input_material.split(" x ");
+        ip_width = parseFloat(input_material[0]);
+
         //This is wt of each individual slit for full coil
-        wt_of_slit = parseFloat(document.querySelector(DOM.currentOpProcWt).value) * parseFloat(document.querySelector(DOM.currentWidth).value) / parseFloat(document.querySelector(DOM.mc_width).value);
+        wt_of_slit = parseFloat(document.querySelector(DOM.currentOpProcWt).value) * parseFloat(document.querySelector(DOM.currentWidth).value) / ip_width;
         length_of_slit = wt_of_slit/parseFloat(document.querySelector(DOM.currentWidth).value)
             /parseFloat(document.querySelector(DOM.thickness).value)/0.00000785;
 
@@ -1020,8 +1045,16 @@ var controller = (function(orderCtrl, UICtrl) {
         // Get field input data
         input = UICtrl.getInput();
 
+        if(document.querySelector(DOM.currentFG_WIP).value === "FG"){
+                if(document.querySelector(DOM.currentPkg).value === ""){
+                    alert("Please enter packing type");
+                    document.querySelector(DOM.currentPkg).focus();
+                    return false;
+                }
+        }
+
         if(checkValidInputs(input)){
-            //Add item to budget Controller
+            //Add item to order Controller
             newOrder = orderCtrl.addOrder(input);
 
             // Add order to UI in appropriate table
@@ -1045,18 +1078,21 @@ var controller = (function(orderCtrl, UICtrl) {
 
             UICtrl.refreshInputSize(new_input, input.input_material, "addSize");
 
+
+
             // if slitting or mini slitting, change available width = (width * no. of slits)
             if(document.querySelector(DOM.currentOperation).value === "Slitting" || document.querySelector(DOM.currentOperation).value === "Mini_Slitting"){
                 width_used = newOrder.output_width * newOrder.numbers;
                 available_width = parseFloat(document.querySelector(DOM.currentAvailableWidth).value);
                 new_width = available_width - width_used;
-                if(new_width>0){
+                if(new_width>=0){
                     document.querySelector(DOM.currentAvailableWidth).value = new_width;
                 }else{
                     alert("Please check width");
                     document.querySelector(DOM.currentWidth).focus();
                 }
             }
+            document.querySelector(DOM.currentFG_WIP).focus();
         }
     };
 
@@ -1146,11 +1182,15 @@ var controller = (function(orderCtrl, UICtrl) {
 
     var onSubmit = function(){
         //alert('submit clicked');
-        var orderString, DOM;
+        var orderString, DOM,url, print_order_string;
         DOM = UICtrl.getDOMstrings();
         orderString = orderCtrl.makeOrderString();
         console.log(orderString);
         document.querySelector(DOM.orderString).value = orderString;
+
+        print_order_string = document.querySelector(DOM.smpl_no).value + "," + document.querySelector(DOM.grade).value + "," + document.querySelector(DOM.customer).value + "," + document.querySelector(DOM.order_date).value + "," + document.querySelector(DOM.expected_date).value
+        url = 'print_order?print=' + print_order_string
+        window.open(url)
     };
 
     return {

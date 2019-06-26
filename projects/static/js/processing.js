@@ -151,4 +151,19 @@ function addRow(tableID)
 							break;
 				}
 			}
-		}
+    }
+
+function validate(){
+    var total_processed_wt, order_wt, completed_proc_wt, order_completed_chk;
+    total_processed_wt = document.getElementById("total_processed_wt").value;
+    total_order_wt = document.getElementById("order_wt").value;
+    completed_proc_wt = document.getElementById("tot_proc_wt").value;
+
+    if (total_order_wt*0.98 > (total_processed_wt + completed_proc_wt)){
+        order_completed_chk = confirm("Order weight is greater than Processing Weight. Should I mark order complete?");
+        if(order_completed_chk){
+
+        }
+    }
+
+}

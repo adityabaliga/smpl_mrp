@@ -62,8 +62,8 @@ function check_numbers(th, tableID)
 
 	var last_row = document.getElementById(tableID).rows[rowCount];
 
-    numbers = last_row.cells[3].lastElementChild.value;
-    dispatch_nos = last_row.cells[8].lastElementChild.value;
+    numbers = parseInt(last_row.cells[3].lastElementChild.value);
+    dispatch_nos = parseInt(last_row.cells[8].lastElementChild.value);
 
     if(dispatch_nos > numbers)
     {
