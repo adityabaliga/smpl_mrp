@@ -810,6 +810,16 @@ def processing_load():
                                                                                 completed_processing_wt_lst,
                                                                                 completed_processing_numbers_lst))
 
+    if operation == 'Lamination':
+        return render_template('processing_lamination.html', incoming=incoming, operation=operation,
+                               processing_details_lst=processing_detail_lst, cs_rm=cs_rm, cs_rm_id=cs_rm_id, order=order,
+                               order_detail_lst=zip(order_detail_id_lst_by_operation,order_detail_lst_by_operation),
+                               _order_detail_lst=zip(order_detail_id_lst_by_operation, order_detail_lst_by_operation),
+                               numbers=numbers, order_id=order_id, stage_no=stage_no,
+                               completed_processing_details_lst = zip(order_detail_lst_by_operation,
+                                                                                completed_processing_wt_lst,
+                                                                                completed_processing_numbers_lst))
+
 
 # 1. Get processing and processing details from the screen
 # 2. Reduce the qty from mother material and update/insert cut material in current_stock

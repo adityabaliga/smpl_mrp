@@ -294,6 +294,8 @@ var UIController = (function() {
        Narrow_CTL_table : '.Narrow_CTL_table',
        Reshearing_table : '.Reshearing_table',
        Mini_Slitting_table : '.Mini_Slitting_table',
+       Lamination_table : '.Lamination_table',
+       Levelling_table : '.Levelling_table',
        operationProcessingWt : '.op_processing_wt',
        operationScrap : '.total_scrap',
        sizesTable : '.sizes_table',
@@ -353,6 +355,16 @@ var UIController = (function() {
            if(operation === "Mini_Slitting"){
                element = DOMStrings.Mini_Slitting_table;
                html = '<tr id="size-Mini_Slitting-%id%"><td>%stage_no%</td><td>%fg_wip%</td><td>%input_material%</td><td>%op_width%</td><td hidden>%op_length%</td><td hidden>%lamination%</td><td>%tolerance%</td><td>%i_dia%</td><td>%proc_wt%</td><td>%numbers%</td><td>%nos_per_packet%</td><td>%no_of_pkts%</td><td>%packing%</td><td>%remarks%</td><td><input type="button" class="item__delete--btn" id="del_size" name="del_size" value="Delete"></button></td><td><input type="button" class="item__edit--btn" id="edit_size" name="edit_size" value="Edit"></button></td></tr>';
+
+           }
+           if(operation === "Lamination"){
+               element = DOMStrings.Lamination_table;
+               html = '<tr id="size-Lamination-%id%"><td>%stage_no%</td><td>%fg_wip%</td><td>%input_material%</td><td>%op_width%</td><td>%op_length%</td><td>%lamination%</td><td>%tolerance%</td><td hidden>%i_dia%</td><td>%proc_wt%</td><td>%numbers%</td><td>%nos_per_packet%</td><td>%no_of_pkts%</td><td>%packing%</td><td>%remarks%</td><td><input type="button" class="item__delete--btn" id="del_size" name="del_size" value="Delete"></button></td><td><input type="button" class="item__edit--btn" id="edit_size" name="edit_size" value="Edit"></button></td></tr>';
+
+           }
+           if(operation === "Levelling"){
+               element = DOMStrings.Levelling_table;
+               html = '<tr id="size-Levelling-%id%"><td>%stage_no%</td><td>%fg_wip%</td><td>%input_material%</td><td>%op_width%</td><td>%op_length%</td><td hidden>%lamination%</td><td>%tolerance%</td><td hidden>%i_dia%</td><td>%proc_wt%</td><td>%numbers%</td><td>%nos_per_packet%</td><td>%no_of_pkts%</td><td>%packing%</td><td>%remarks%</td><td><input type="button" class="item__delete--btn" id="del_size" name="del_size" value="Delete"></button></td><td><input type="button" class="item__edit--btn" id="edit_size" name="edit_size" value="Edit"></button></td></tr>';
 
            }
 
@@ -543,7 +555,7 @@ var controller = (function(orderCtrl, UICtrl) {
        document.querySelector(DOM.currentNumbers).addEventListener("change", onChangeNumbers);
 
        document.querySelector(DOM.currentWtPerPkt).addEventListener("change", function(event){
-           if(document.querySelector(DOM.currentOperation).value === "CTL" || document.querySelector(DOM.currentOperation).value === "Narrow_CTL" || document.querySelector(DOM.currentOperation).value === "Reshearing"){
+           if(document.querySelector(DOM.currentOperation).value === "CTL" || document.querySelector(DOM.currentOperation).value === "Narrow_CTL" || document.querySelector(DOM.currentOperation).value === "Reshearing" || document.querySelector(DOM.currentOperation).value === "Levelling" || document.querySelector(DOM.currentOperation).value === "Lamination"){
                onChangeWtPerPkt();
            }
        });
@@ -640,7 +652,7 @@ var controller = (function(orderCtrl, UICtrl) {
                     input_material[i].disabled = false;
                 }
             }
-            if(document.querySelector(DOM.currentOperation).value === "Reshearing"){
+            if(document.querySelector(DOM.currentOperation).value === "Reshearing" || document.querySelector(DOM.currentOperation).value === "Levelling" || document.querySelector(DOM.currentOperation).value === "Lamination"){
                 if(parseFloat(ip[1]) == 0){
                     input_material[i].disabled = true;
                 }else{
@@ -806,6 +818,60 @@ var controller = (function(orderCtrl, UICtrl) {
             parent.insertBefore(no_of_pakts,packing);
         }
 
+        //For Lamination and Levelling, the size should not change
+        if(document.querySelector(DOM.currentOperation).value === "Lamination" || document.querySelector(DOM.currentOperation).value === "Levelling"){
+            document.querySelector(DOM.currentLength).hidden = false;
+            document.querySelector(DOM.currentLengthHdr).hidden = false;
+
+            //document.querySelector(DOM.currentWidth).value = document.querySelector(DOM.mc_width).value;
+            //document.querySelector(DOM.currentLength).value = document.querySelector(DOM.mc_length).value;
+            document.querySelector(DOM.currentWidth).readOnly = true;
+            document.querySelector(DOM.currentLength).readOnly = true;
+            //document.querySelector(DOM.currentWidthHdr).hidden = true;
+
+            if(document.querySelector(DOM.currentOperation).value === "Lamination"){
+                document.querySelector(DOM.currentLami).hidden = false;
+                document.querySelector(DOM.currentLamiHdr).hidden = false;
+            }else{
+                document.querySelector(DOM.currentLami).hidden = true;
+                document.querySelector(DOM.currentLamiHdr).hidden = true;
+            }
+
+            document.querySelector(DOM.currentProcWt).readOnly = false;
+            document.querySelector(DOM.currentProcWtHdr).hidden = false;
+            document.querySelector(DOM.currentProcWt).hidden = false;
+
+
+            document.querySelector(DOM.currentWtPerPktHdr).innerHTML = "<b>Weight/pkt (in MT)</b>";
+            document.querySelector(DOM.currentNumbersHdr).innerHTML = "<b>Numbers</b>";
+            document.querySelector(DOM.currentNumbers).readOnly = true;
+            document.querySelector(DOM.currentNoOfPkts).readOnly = true;
+            document.querySelector(DOM.currentNoPerPkt).readOnly = true;
+            document.querySelector(DOM.currentWtPerPkt).readOnly = false;
+
+
+            document.querySelector(DOM.currentNoPerPktHdr).innerHTML = "<b>No.s/pkt</b>";
+            document.querySelector(DOM.currentNoOfPktsHdr).innerHTML = "<b>No. of pkts</b>";
+
+            /*document.querySelector(DOM.currentOpProcWt).hidden = true;
+            document.querySelector(DOM.currentOpProcWtHdr).hidden = true;
+
+            document.querySelector(DOM.currentIDia).hidden = true;
+            document.querySelector(DOM.currentIdiaHdr).hidden = true;*/
+
+
+            document.querySelector('.current_op_slitting').hidden = true;
+
+            //numbers was moved to before length for slitting, moving it back to no_per_packet
+            var numbers = document.querySelector('.numbers_curr_size');
+            var parent = numbers.parentNode;
+            var no_per_pakt = document.querySelector('.no_per_pkt_curr_size');
+            parent.insertBefore(numbers,no_per_pakt);
+            var no_of_pakts = document.querySelector('.no_of_pkts_curr_size');
+            var packing = document.querySelector('.packing_curr_size');
+            parent.insertBefore(no_of_pakts,packing);
+        }
+
 
     };
 
@@ -821,6 +887,10 @@ var controller = (function(orderCtrl, UICtrl) {
            }
         if(document.querySelector(DOM.currentOperation).value === "Narrow_CTL" || document.querySelector(DOM.currentOperation).value === "CTL"){
             document.querySelector(DOM.currentWidth).value = input_mtrl[0];
+        }
+        if(document.querySelector(DOM.currentOperation).value === "Levelling" || document.querySelector(DOM.currentOperation).value === "Lamination"){
+            document.querySelector(DOM.currentWidth).value = input_mtrl[0];
+            document.querySelector(DOM.currentLength).value = input_mtrl[1];
         }
     };
 
@@ -1188,9 +1258,9 @@ var controller = (function(orderCtrl, UICtrl) {
         console.log(orderString);
         document.querySelector(DOM.orderString).value = orderString;
 
-        print_order_string = document.querySelector(DOM.smpl_no).value + "," + document.querySelector(DOM.grade).value + "," + document.querySelector(DOM.customer).value + "," + document.querySelector(DOM.order_date).value + "," + document.querySelector(DOM.expected_date).value
+        /*print_order_string = document.querySelector(DOM.smpl_no).value + "," + document.querySelector(DOM.grade).value + "," + document.querySelector(DOM.customer).value + "," + document.querySelector(DOM.order_date).value + "," + document.querySelector(DOM.expected_date).value
         url = 'print_order?print=' + print_order_string
-        window.open(url)
+        window.open(url)*/
     };
 
     return {
