@@ -1,11 +1,14 @@
 
 // This function is to set the focus when the page loads for CTL, NCTL and Reshearing operations
 function setFocusToTextBox(operation){
-    if(operation == "CTL" || operation == "Narrow CTL"){
+    if(operation == "Narrow_CTL"){
         document.getElementById("actual_no_of_pieces").focus();
     }
     if(operation == "Reshearing"){
         document.getElementById("output_width").focus();
+    }
+    if(operation == "CTL"){
+        document.getElementById("lamination").focus();
     }
 }
 

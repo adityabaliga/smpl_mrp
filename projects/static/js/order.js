@@ -88,7 +88,7 @@ var orderController = (function () {
                   input.input_length + "," + input.fg_wip + "," +  input.output_width + "," + input.output_length + "," +
                   input.lamination + "," +  input.tolerance + "," + input.i_dia + "," + input.processing_wt + "," +
                   input.wt_per_pkt + "," + input.numbers + "," +  input.no_of_pkts + "," + input.nos_per_pkt + "," +
-                  input.packing + "," +  input.remarks + ";";
+                  input.packing + "," +  input.remarks + "^";
               }
           }
           if (data.allOrders['Slitting'].length > 0) {
@@ -99,7 +99,7 @@ var orderController = (function () {
                   input.input_length + "," + input.fg_wip + "," +  input.output_width + "," + input.output_length + "," +
                   input.lamination + "," +  input.tolerance + "," + input.i_dia + "," + input.processing_wt + "," +
                   input.wt_per_pkt + "," + input.numbers + "," +  input.no_of_pkts + "," + input.nos_per_pkt + "," +
-                  input.packing + "," +  input.remarks + ";";
+                  input.packing + "," +  input.remarks + "^";
               }
           }
           if (data.allOrders['Mini_Slitting'].length > 0) {
@@ -110,7 +110,7 @@ var orderController = (function () {
                   input.input_length + "," + input.fg_wip + "," +  input.output_width + "," + input.output_length + "," +
                   input.lamination + "," +  input.tolerance + "," + input.i_dia + "," + input.processing_wt + "," +
                   input.wt_per_pkt + "," + input.numbers + "," +  input.no_of_pkts + "," + input.nos_per_pkt + "," +
-                  input.packing + "," +  input.remarks + ";";
+                  input.packing + "," +  input.remarks + "^";
               }
           }
           if (data.allOrders['Narrow_CTL'].length > 0) {
@@ -121,7 +121,7 @@ var orderController = (function () {
                   input.input_length + "," + input.fg_wip + "," +  input.output_width + "," + input.output_length + "," +
                   input.lamination + "," +  input.tolerance + "," + input.i_dia + "," + input.processing_wt + "," +
                   input.wt_per_pkt + "," + input.numbers + "," +  input.no_of_pkts + "," + input.nos_per_pkt + "," +
-                  input.packing + "," +  input.remarks + ";";
+                  input.packing + "," +  input.remarks + "^";
               }
           }
           if (data.allOrders['Reshearing'].length > 0) {
@@ -132,7 +132,7 @@ var orderController = (function () {
                   input.input_length + "," + input.fg_wip + "," +  input.output_width + "," + input.output_length + "," +
                   input.lamination + "," +  input.tolerance + "," + input.i_dia + "," + input.processing_wt + "," +
                   input.wt_per_pkt + "," + input.numbers + "," +  input.no_of_pkts + "," + input.nos_per_pkt + "," +
-                  input.packing + "," +  input.remarks + ";";
+                  input.packing + "," +  input.remarks + "^";
               }
           }
           if (data.allOrders['Lamination'].length > 0) {
@@ -143,7 +143,7 @@ var orderController = (function () {
                   input.input_length + "," + input.fg_wip + "," +  input.output_width + "," + input.output_length + "," +
                   input.lamination + "," +  input.tolerance + "," + input.i_dia + "," + input.processing_wt + "," +
                   input.wt_per_pkt + "," + input.numbers + "," +  input.no_of_pkts + "," + input.nos_per_pkt + "," +
-                  input.packing + "," +  input.remarks + ";";
+                  input.packing + "," +  input.remarks + "^";
               }
           }
           return orderString;
@@ -981,15 +981,21 @@ var controller = (function(orderCtrl, UICtrl) {
 
     var onChangeWtPerPkt = function(){
       //calculate numbers, number of packets, numbers per packet for CTL, NCTl and Reshearing
-        var width, length, thickness, processing_wt, numbers, wt_per_pkt, number_of_pkts, numbers_per_pkt, flag;
+        var width, length, thickness, processing_wt, numbers, wt_per_pkt, number_of_pkts, numbers_per_pkt, flag, operation;
+        var ms_width, ms_length, numbers_per_ms_sheet, ms_numbers, input_mtrl;
         var DOM = UICtrl.getDOMstrings();
         flag = true;
-
+        operation = (document.querySelector(DOM.currentOperation).value);
         width = parseFloat(document.querySelector(DOM.currentWidth).value);
         length = parseFloat(document.querySelector(DOM.currentLength).value);
         thickness = parseFloat(document.querySelector(DOM.thickness).value);
         processing_wt = parseFloat(document.querySelector(DOM.currentProcWt).value);
         wt_per_pkt = parseFloat(document.querySelector(DOM.currentWtPerPkt).value);
+        input_mtrl = document.querySelector(DOM.currentInputMaterial).value
+        input_mtrl = input_mtrl.split(" x ");
+        ms_width = parseFloat(input_mtrl[0]);
+        ms_length = parseFloat(input_mtrl[1]);
+
 
         if(isNaN(length)){
             alert("Please enter length");
@@ -1003,7 +1009,17 @@ var controller = (function(orderCtrl, UICtrl) {
         }
 
         if(flag){
-            numbers = Math.round(processing_wt*1000/thickness/width/length/0.00000785);
+            if (operation != "Reshearing"){
+                numbers = Math.round(processing_wt*1000/thickness/width/length/0.00000785);
+
+            }
+            // This is because for reshearing has to be calculated based on no. of sheets per mother sheet
+            else{
+                ms_numbers = Math.round(processing_wt*1000/thickness/ms_width/ms_length/0.00000785);
+                numbers_per_ms_sheet = Math.round(ms_width*ms_length/width/length);
+                numbers = ms_numbers * numbers_per_ms_sheet;
+            }
+
             number_of_pkts = Math.round(processing_wt/wt_per_pkt);
             numbers_per_pkt = Math.round(numbers/number_of_pkts);
 
