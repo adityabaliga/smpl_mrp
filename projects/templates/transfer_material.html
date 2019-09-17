@@ -66,12 +66,13 @@
     <td>Transfer to Unit </td>
         <td>
             <select name="unit">
-                {% if cs_rm.unit == "1" %}
+                {% if unit == "2" %}
                     <option value="1">1</option>
                 {% endif %}
-                {% if cs_rm.unit == "2" %}
+                {% if unit == "1" %}
                     <option value="2">2</option>
                 {% endif %}
+
             </select>
         </td>
     </table>

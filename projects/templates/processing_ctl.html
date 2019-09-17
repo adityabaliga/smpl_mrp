@@ -176,12 +176,15 @@
             <th>Completed Wt</th>
         </tr>
     {% for order_detail, completed_processing_wt, completed_processing_numbers in completed_processing_details_lst %}
+
+        {% if completed_processing_wt > 0 %}
         <tr>
             <td><input type = "text" name = "cut_size" value = "{{order_detail.cut_width}} x {{order_detail.cut_length}}" readonly></td>
             <td><input type = "number" name = "completed_nos" value = {{completed_processing_numbers}} readonly></td>
             <td><input type = "number" name = "completed_wt" value = {{completed_processing_wt}} readonly></td>
 
         </tr>
+        {% endif %}
     {% endfor %}
     </table>
      <div>Total Processed Wt (in MT)<input type = "number" name = "tot_proc_wt" id = "tot_proc_wt" value = {{total_completed_proc_wt}} readonly></div>
