@@ -81,6 +81,8 @@ class Incoming:
 
             # Numbers of RM is extracted. In the xml, the numbers are suffixed with MT. This is split and numbers kept
             numbers_coll = rm.getElementsByTagName("UDF:SBATCHNOOFPCS")
+            if numbers_coll.length <1:
+                numbers_coll = rm.getElementsByTagName("UDF:_UDF_721427290")
             numbers_list = numbers_coll[0].firstChild.data.split(' ')
             numbers = Decimal(numbers_list[1])
 
@@ -101,8 +103,13 @@ class Incoming:
             # Remove all spaces from the SMPL in tally, this will keep searching simple
             _smpl_no = smpl_no.childNodes[0].data.replace(" ","")
             _customer = customer[0].childNodes[0]._data
+
+            # Additional comments have been added in this node in Tally such as for ID and IS grade
+            # All this is being extracted and added to the grade column
+            _grade = ""
             if grade:
-                _grade = grade[0].firstChild._data
+                for gr in grade:
+                    _grade += gr.firstChild._data + ". "
             else:
                 _grade = ''
             if mill:

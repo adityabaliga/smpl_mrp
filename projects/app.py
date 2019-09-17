@@ -311,7 +311,7 @@ def transfer_pick_unit():
         unit = request.args.get('select_unit')
         stock_type = request.args.get('stock_type')
 
-    cs_return_lst = CurrentStock.get_stock(stock_type,int(unit))
+    cs_return_lst = CurrentStock.get_stock(stock_type,unit)
 
     cs_obj_lst = []
     cs_id_lst = []
@@ -321,7 +321,7 @@ def transfer_pick_unit():
         cs_obj_lst.append(cs)
 
     if cs_obj_lst:
-        return render_template('transfer_material.html', cs_lst=zip(cs_id_lst, cs_obj_lst))
+        return render_template('transfer_material.html', cs_lst=zip(cs_id_lst, cs_obj_lst), unit = unit)
     else:
         return render_template('/main_menu.html', message="No Raw material to transfer")
 
@@ -423,9 +423,13 @@ def order():
     if request.method == 'GET':
         smpl_no = request.args.get('select_smpl')
     incoming = Incoming.load_smpl_by_smpl_no(smpl_no)
+    current_stock = CurrentStock.load_smpl_by_smplno(smpl_no, incoming.length, incoming.width)
+    for cs_id, _current_stock in current_stock:
+        cs = _current_stock
+
     return render_template('order.html', smpl_no=smpl_no, customer=incoming.customer, thickness=incoming.thickness,
                            width=incoming.width, length=incoming.length, grade=incoming.grade,
-                           weight=incoming.weight, numbers=incoming.numbers)
+                           weight=cs.weight , numbers=incoming.numbers)
 
 
 # from order.html. The details retrieved from the page and loaded to db in to order and order_detail
@@ -447,7 +451,7 @@ def submit_order():
         header_remarks = request.form['hdr_remarks']
         order_string = request.form['order_string']
 
-        order_string_lst = order_string.split(';')
+        order_string_lst = order_string.split('^')
 
         '''ms_width_lst = []
         ms_length_lst = []
@@ -574,7 +578,10 @@ def view_order():
     _order_detail_lst = []
     order_detail_for_print_lst = []
     order_detail_by_stage_and_op_lst = []
-
+    operation_lst = []
+    ms_lst = []
+    proc_wt_lst = []
+    stage_no_lst = []
 
     if request.method == 'POST':
         smpl_no = request.form['select_smpl']
@@ -592,22 +599,51 @@ def view_order():
     for order_detail_id, order_detail in _order_detail_lst:
         order_detail_lst.append(order_detail)
 
-    for order_detail in order_detail_lst:
+    '''for order_detail in order_detail_lst:
         operation = order_detail.operation
         stage_no = order_detail.stage_no
+        #order_detail_by_stage_and_op_lst.append(order_detail)
+        ms = str(order_detail.ms_width) + " x " + str(order_detail.ms_length)
+        proc_wt = 0
         for order_detail2 in order_detail_lst:
             if order_detail2.operation == operation and stage_no == order_detail2.stage_no:
                 order_detail_by_stage_and_op_lst.append(order_detail2)
+                proc_wt += order_detail2.processing_wt
+                # order_detail_lst.remove(order_detail2)
         order_detail_for_print_lst.append(order_detail_by_stage_and_op_lst)
-        order_detail_by_stage_and_op_lst = []
-        order_detail_lst.remove(order_detail2)
+        operation_lst.append(operation)
+        ms_lst.append(ms)
+        proc_wt_lst.append(proc_wt)
+        for order_detail3 in order_detail_by_stage_and_op_lst:
+            order_detail_lst.remove(order_detail3)
+        order_detail_by_stage_and_op_lst = []'''
 
+    i=0
+    while len(order_detail_lst) >0:
+        operation = order_detail_lst[i].operation
+        stage_no = order_detail_lst[i].stage_no
+        # order_detail_by_stage_and_op_lst.append(order_detail)
+        ms = str(order_detail_lst[i].ms_width) + " x " + str(order_detail_lst[i].ms_length)
+        proc_wt = 0
+        for order_detail2 in order_detail_lst:
+            if order_detail2.operation == operation and stage_no == order_detail2.stage_no:
+                order_detail_by_stage_and_op_lst.append(order_detail2)
+                proc_wt += order_detail2.processing_wt
+                # order_detail_lst.remove(order_detail2)
+        order_detail_for_print_lst.append(order_detail_by_stage_and_op_lst)
+        operation_lst.append(operation)
+        stage_no_lst.append(stage_no)
+        ms_lst.append(ms)
+        proc_wt_lst.append(proc_wt)
+        for order_detail3 in order_detail_by_stage_and_op_lst:
+            order_detail_lst.remove(order_detail3)
+        order_detail_by_stage_and_op_lst = []
 
 
     return render_template('view_order.html', smpl_no=smpl_no, customer=incoming.customer, thickness=incoming.thickness,
                            width=incoming.width, length=incoming.length, grade=incoming.grade,
                            weight=incoming.weight, numbers=incoming.numbers, order=order,
-                           order_detail_lst=order_detail_for_print_lst)
+                           order_detail_lst=zip(order_detail_for_print_lst, operation_lst, ms_lst,proc_wt_lst, stage_no_lst))
 
 
 # To load orders by machine to chose for processing
@@ -625,9 +661,17 @@ def orders_by_machine():
         cs_lst = []
         order_return_lst = []
         expected_date_lst = []
+        _cs_lst = []
+        cs_id_lst = []
         for order_detail in order_detail_lst:
-            cs_lst.append(
-                CurrentStock.load_smpl_by_smplno(order_detail.smpl_no, order_detail.ms_length, order_detail.ms_width))
+            _cs_lst = CurrentStock.load_smpl_by_smplno(order_detail.smpl_no, order_detail.ms_length,
+                                                       order_detail.ms_width)
+            for cs_id, cs in _cs_lst:
+                if str(cs.unit) == str(current_user.unit):
+                    cs_lst.append(cs)
+                    cs_id_lst.append(cs_id)
+            # cs_lst.append(
+                #   CurrentStock.load_smpl_by_smplno(order_detail.smpl_no, order_detail.ms_length, order_detail.ms_width))
             order_return_lst = Order.load_from_db(order_detail.smpl_no, "Open")
             # Expected date got from order and displayed in dd/mm/YYYY format
             for order_id, order in order_return_lst:
@@ -639,8 +683,11 @@ def orders_by_machine():
         order_not_ready_lst = []
         expected_date_for_not_ready_lst = []
         for order_detail in order_detail_not_ready_list:
-            cs_not_ready_lst.append(
-                CurrentStock.load_smpl_by_smplno(order_detail.smpl_no, order_detail.ms_length, order_detail.ms_width))
+            cs = CurrentStock.load_smpl_by_smplno(order_detail.smpl_no, order_detail.ms_length, order_detail.ms_width)
+            if str(cs.unit) == str(current_user.unit):
+                cs_not_ready_lst.append()
+            # cs_not_ready_lst.append(
+            #   CurrentStock.load_smpl_by_smplno(order_detail.smpl_no, order_detail.ms_length, order_detail.ms_width))
             order_not_ready_lst = Order.load_from_db(order_detail.smpl_no, "Open")
             for order_id, _order in order_not_ready_lst:
                 expected_date_for_not_ready_lst.append(_order.expected_date.strftime('%d/%m/%Y'))
@@ -650,7 +697,7 @@ def orders_by_machine():
 
 
     if cs_lst:
-        return render_template('processing_pick_smpl.html', cs_lst=zip(cs_lst, expected_date_lst), operation=operation,
+        return render_template('processing_pick_smpl.html', cs_lst=zip(cs_id_lst, cs_lst, expected_date_lst), operation=operation,
                                cs_not_ready_lst=zip(cs_not_ready_lst, expected_date_for_not_ready_lst))
     else:
         return render_template('/main_menu.html', message="No raw material or WIP available!")
@@ -677,8 +724,10 @@ def processing_pick_unit():
         #cs_lst.append(CurrentStock.load_smpl_by_smplno(order_detail.smpl_no, order_detail.ms_length, order_detail.ms_width))
         _cs_lst = CurrentStock.load_smpl_by_smplno(order_detail.smpl_no, order_detail.ms_length, order_detail.ms_width)
         for cs_id, cs in _cs_lst:
-            cs_id_lst.append(cs_id)
-            cs_lst.append(cs)
+            if str(cs.unit) == str(unit):
+                cs_lst.append(cs)
+                cs_id_lst.append(cs_id)
+
         order_return_lst = Order.load_from_db(order_detail.smpl_no, "Open")
         # Expected date got from order and displayed in dd/mm/YYYY format
         for order_id, order in order_return_lst:
@@ -885,10 +934,10 @@ def submit_processing():
                 ms_width = ip_size[0]
                 ms_length = ip_size[1]
 
-                #if lamination == "single-side" or lamination == "double-side":
-                #    machine += " " + lamination
+                if lamination != "no-lami" and lamination != "No Lamination":
+                    machine += " " + lamination
 
-                if processed_wt != '':
+                if processed_wt != '' and Decimal(processed_wt) > 0.0:
                     # Get mother size and cut size from the screen. Create processing detail and then update to db
                     processing_detail = ProcessingDetail(smpl_no, operation, machine, processing_id, output_width,
                                                          output_length, actual_no_of_pieces,
@@ -933,7 +982,7 @@ def submit_processing():
 
                     # Unit of the material is decided based on the machine used to process the material.
                     # WARNING: This is bad programming
-                    if machine == "CTL 2" or machine == "Slitting" or machine == "Mini_Slitting" or \
+                    if machine.startswith("CTL 2") or machine == "Slitting" or machine == "Mini_Slitting" or \
                             machine == "Reshearing 5" or machine == "Reshearing 6" or machine == "Reshearing 7" or \
                             machine == "NCTL 2" or machine == "NCTL 3":
                         unit = '2'
@@ -1032,6 +1081,7 @@ def submit_processing():
         # I'm assuming if less than 3% of the rm weight remains, that the material is over and the rm can be deleted
         balance_wt = abs(rm_wt - total_processed_wt)
         if balance_wt/rm_wt < 0.03:
+            OrderDetail.complete_processing_on_del(smpl_no, ms_width, ms_length)
             CurrentStock.delete_record(cs_rm_id)
 
         return render_template('/main_menu.html', message="Processing for " + smpl_no + " entered.")

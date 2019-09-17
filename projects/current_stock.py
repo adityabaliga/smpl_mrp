@@ -144,15 +144,16 @@ class CurrentStock:
     @classmethod
     def change_wt(cls, smpl_no, width, length, processed_wt, actual_no_of_pieces, sign):
         with CursorFromConnectionFromPool() as cursor:
-            cursor.execute("select weight, numbers, unit from current_stock where smpl_no = %s and width = %s and length = %s",(smpl_no,width,length))
+            cursor.execute("select weight, numbers, unit, cs_id from current_stock where smpl_no = %s and width = %s and length = %s",(smpl_no,width,length))
             user_data = cursor.fetchone()
             if user_data:
                 weight = Decimal(user_data[0])
                 numbers = Decimal(user_data[1])
+                cs_id = user_data[3]
                 if sign == "minus":
                     new_weight = weight - Decimal(processed_wt)
                     new_weight = round(new_weight,3)
-                    if Decimal(length) > 0 or numbers>1:
+                    if Decimal(length) > 0 or numbers > 1:
                         new_numbers = numbers - Decimal(actual_no_of_pieces)
                     else:
                         new_numbers = numbers
@@ -165,8 +166,11 @@ class CurrentStock:
                         new_numbers = numbers
 
                 if new_weight < 0.15:
-
+                    #OrderDetail.complete_processing_on_del(smpl_no, width, length)
+                    #CurrentStock.delete_record(cs_id)
                     cursor.execute("delete from current_stock where smpl_no = %s and width = %s and length = %s",(smpl_no,width,length))
+                    # This is done when the RM is over but for some reason the order could not be completed
+                    # This could when the RM is thickness is more or wrong calc of material or processing mistake/change
 
                     return "complete"
                 else:
@@ -174,6 +178,8 @@ class CurrentStock:
                     return "continue"
             else:
                 return "insert"
+
+
 
 
     @classmethod
@@ -189,11 +195,11 @@ class CurrentStock:
 
         if stock_type == 'All':
             with CursorFromConnectionFromPool() as cursor:
-                cursor.execute("select * from current_stock where unit = %s",(unit,))
+                cursor.execute("select * from current_stock where unit = %s order by smpl_no asc",(unit,))
                 user_data = cursor.fetchall()
         else:
             with CursorFromConnectionFromPool() as cursor:
-                cursor.execute("select * from current_stock where status = %s and unit = %s",(stock_type,unit))
+                cursor.execute("select * from current_stock where status = %s and unit = %s order by smpl_no asc",(stock_type,unit))
                 user_data = cursor.fetchall()
 
         for lst in user_data:
@@ -245,7 +251,7 @@ class CurrentStock:
         customer_lst = []
         user_data = []
         with CursorFromConnectionFromPool() as cursor:
-            cursor.execute("select distinct customer from current_stock  order by customer asc")
+            cursor.execute("select distinct customer from current_stock where status='FG' order by customer asc")
             user_data = cursor.fetchall()
         for lst in user_data:
             customer_lst.append(lst[0])
@@ -259,11 +265,11 @@ class CurrentStock:
         cs_id_lst = []
         if display_type == 'FG':
             with CursorFromConnectionFromPool() as cursor:
-                cursor.execute("select * from current_stock where customer=%s and status = 'FG'",(customer,))
+                cursor.execute("select * from current_stock where customer=%s and status = 'FG' order by smpl_no asc",(customer,))
                 user_data = cursor.fetchall()
         if display_type == 'FGandRM':
             with CursorFromConnectionFromPool() as cursor:
-                cursor.execute("select * from current_stock where customer=%s and (status = 'FG' or status = 'RM')", (customer,))
+                cursor.execute("select * from current_stock where customer=%s and (status = 'FG' or status = 'RM') order by smpl_no asc", (customer,))
                 user_data = cursor.fetchall()
         for lst in user_data:
             cs = CurrentStock(smpl_no=lst[1],weight = Decimal(lst[2]),numbers=int(lst[3]),width=Decimal(lst[4]),
