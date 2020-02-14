@@ -122,6 +122,28 @@ class CurrentStock:
 
             return zip(cs_id_lst, cs_lst)
 
+    @classmethod
+    def load_smpl_for_history(cls, smpl_no):
+        cs_lst = []
+        user_data = []
+
+        with CursorFromConnectionFromPool() as cursor:
+            user_data = cursor.execute("select * from current_stock where smpl_no = %s",(smpl_no, ))
+
+            user_data = cursor.fetchall()
+
+            if user_data:
+                for lst in user_data:
+                    cs = CurrentStock(smpl_no=lst[1], weight=Decimal(lst[2]), numbers=int(lst[3]),
+                                      width=Decimal(lst[4]),
+                                      length=Decimal(lst[5]), status=lst[6], customer=lst[7], thickness=Decimal(lst[8]),
+                                      grade=lst[9], unit=lst[10])
+                    cs_lst.append(cs)
+
+
+                return cs_lst
+            else:
+                return None
 
     @classmethod
     def load_smpl_by_id(cls, cs_id):
@@ -153,14 +175,14 @@ class CurrentStock:
                 if sign == "minus":
                     new_weight = weight - Decimal(processed_wt)
                     new_weight = round(new_weight,3)
-                    if Decimal(length) > 0 or numbers > 1:
+                    if numbers > 1:
                         new_numbers = numbers - Decimal(actual_no_of_pieces)
                     else:
                         new_numbers = numbers
                 if sign == "plus":
                     new_weight = weight + Decimal(processed_wt)
                     new_weight = round(new_weight, 3)
-                    if Decimal(length) > 0:
+                    if numbers > 1:
                         new_numbers = numbers + Decimal(actual_no_of_pieces)
                     else:
                         new_numbers = numbers

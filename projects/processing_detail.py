@@ -61,9 +61,9 @@ class ProcessingDetail:
             return processing_dtl_lst
 
     @classmethod
-    def load_history(cls, smpl_no):
+    def load_history(cls, order_detail_id):
         with CursorFromConnectionFromPool() as cursor:
-            cursor.execute("select * from processing_detail where smpl_no = %s ",(smpl_no, ))
+            cursor.execute("select * from processing_detail where order_detail_id = %s ",(order_detail_id, ))
             user_data = cursor.fetchall()
             processing_dtl_lst = []
             for lst in user_data:
@@ -86,9 +86,10 @@ class ProcessingDetail:
             for lst in user_data:
                 processing_dtl = ProcessingDetail(smpl_no=lst[1], operation=lst[2], machine=lst[3],
                                                   processing_id=int(lst[4]),
-                                                  cut_width=Decimal(lst[5]), cut_length=Decimal(lst[6])
-                                                  , processed_numbers=int(lst[7]), processed_packets=int(lst[8]),
-                                                  processed_wt=Decimal(lst[10]), remarks=lst[9],
-                                                  input_width=Decimal(lst[11]), input_length=Decimal(lst[12]))
+                                                  cut_width=Decimal(lst[5]), cut_length=Decimal(lst[6]),
+                                                  processed_numbers=int(lst[7]), processed_packets=int(lst[8]),
+                                                  remarks=lst[9], processed_wt=Decimal(lst[10]),
+                                                  input_width=Decimal(lst[11]), input_length=Decimal(lst[12]),
+                                                  order_detail_id=lst[13])
                 processing_dtl_lst.append(processing_dtl)
             return processing_dtl_lst

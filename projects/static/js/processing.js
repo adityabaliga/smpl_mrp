@@ -16,7 +16,7 @@ function setFocusToTextBox(operation){
 // This function is to set the focus when the page loads for slitting operation
 function setFocusToTextBox_Slit(){
 
-        document.getElementById("output_width").focus();
+        document.getElementById("order_numbers").focus();
 
 }
 
@@ -58,18 +58,21 @@ function calculate_wt_and_cuts(table_id){
         total_processed_wt += Number(row.cells[5].lastChild.value);
         total_cuts += Number(row.cells[3].lastChild.value);
     }
-    var rm_weight = Number(document.getElementById("weight").value);
-    var scrap_wt = rm_weight - total_processed_wt;
+    var total_order_wt = Number(document.getElementById("order_wt").value);
+    var completed_proc_wt = Number(document.getElementById("tot_proc_wt").value);
+    var scrap_wt = total_order_wt - total_processed_wt - completed_proc_wt ;
 
 
     document.getElementById("total_processed_wt").value = Number(total_processed_wt.toFixed(3));
     document.getElementById("total_cuts").value = total_cuts;
-    document.getElementById("scrap_wt").value = Number(scrap_wt.toFixed(3));
+    document.getElementById("balance_wt").value = scrap_wt.toFixed(3);
+    //document.getElementById("scrap_wt").value = Number(scrap_wt.toFixed(3));
 }
 
 function time_taken(){
    var t1 = document.getElementById("start_time").value;
    var t2 = document.getElementById("end_time").value;
+
    var parts = t1.split(':');
    var d1 = Number(parts[0])*60 + Number(parts[1]);
    parts = t2.split(':');
@@ -115,6 +118,7 @@ function get_part_weight(){
     var input_material = (document.getElementById("input_material").value);
     input_material = input_material.split("x");
 
+
     var width = Number(input_material[0]);
     rm_wt = Number(document.getElementById("weight").value);
 
@@ -122,7 +126,15 @@ function get_part_weight(){
     var coil_length = rm_wt/thickness/width/0.00000785;
     document.getElementById("total_processed_wt").value = total_processed_wt.toFixed(3);
 
+    var total_order_wt = Number(document.getElementById("order_wt").value);
+    var completed_proc_wt = Number(document.getElementById("tot_proc_wt").value);
+    var scrap_wt = total_order_wt - total_processed_wt - completed_proc_wt ;
+
+
+    document.getElementById("balance_wt").value = scrap_wt.toFixed(3);
+
 }
+
 
 function addRow(tableID)
 	 {
@@ -157,16 +169,48 @@ function addRow(tableID)
     }
 
 function validate(){
-    var total_processed_wt, order_wt, completed_proc_wt, order_completed_chk;
-    total_processed_wt = document.getElementById("total_processed_wt").value;
-    total_order_wt = document.getElementById("order_wt").value;
-    completed_proc_wt = document.getElementById("tot_proc_wt").value;
+    var total_processed_wt, total_order_wt, completed_proc_wt, order_completed_chk;
+    total_processed_wt = Number(document.getElementById("total_processed_wt").value);
+    total_order_wt = Number(document.getElementById("order_wt").value);
+    completed_proc_wt = Number(document.getElementById("tot_proc_wt").value);
 
     if (total_order_wt*0.98 > (total_processed_wt + completed_proc_wt)){
-        order_completed_chk = confirm("Order weight is greater than Processing Weight. Should I mark order complete?");
-        if(order_completed_chk){
-
+        order_completed_chk = confirm("Order weight is greater than Processing Weight. Should the order be marked complete?");
         }
+        if(order_completed_chk == false){
+            document.getElementById("balance_wt").value = 0;
+        }
+
+    return true;
+ }
+
+
+function setting_done_change(){
+    var setting_done_yes = document.getElementById("setting_done_yes").checked;
+    var setting_done_no = document.getElementById("setting_done_no").checked;
+
+    console.log(setting_done_yes);
+    console.log(setting_done_no);
+
+    if(setting_done_yes == true){
+        document.getElementById("setting_date").value = "";
+        document.getElementById("setting_date").readOnly = false;
+        document.getElementById("setting_start_time").value = "";
+        document.getElementById("setting_start_time").readOnly = false;
+        document.getElementById("setting_end_time").value = "";
+        document.getElementById("setting_end_time").readOnly = false;
+        document.getElementById("setting_time").value = "";
+
+    }
+    if(setting_done_no == true){
+        document.getElementById("setting_date").value = "2001-01-01";
+        document.getElementById("setting_date").readOnly = true;
+        document.getElementById("setting_start_time").value = "00:00";
+        document.getElementById("setting_start_time").readOnly = true;
+        document.getElementById("setting_end_time").value = "00:01";
+        document.getElementById("setting_end_time").readOnly = true;
+        document.getElementById("setting_time").value = "1";
+
     }
 
 }

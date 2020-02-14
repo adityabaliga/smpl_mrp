@@ -71,11 +71,11 @@ class Order:
         with CursorFromConnectionFromPool() as cursor:
             cursor.execute('select * from order_header where smpl_no = %s', (smpl_no,))
             lst = cursor.fetchone()
-
-            order = Order(smpl_no=lst[1], order_date=lst[2], expected_date=lst[3], processing_wt=lst[4],
+            if lst:
+                order = Order(smpl_no=lst[1], order_date=lst[2], expected_date=lst[3], processing_wt=lst[4],
                           status=lst[5], remarks=lst[6])
 
-            order_id = int(lst[0])
-        order_id_lst.append(order_id)
-        order_lst.append(order)
+                order_id = int(lst[0])
+                order_id_lst.append(order_id)
+                order_lst.append(order)
         return zip(order_id_lst, order_lst)

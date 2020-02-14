@@ -96,6 +96,164 @@
 
     </table>
 
+
+    {% for order_dtl_lst,operation, ms, proc_wt, stage_no in order_detail_lst %}
+    <h1 align = "center">smpl_no</h1>
+    <h2 align="center">{{operation}} - Stage No. {{stage_no}}</h2>
+
+
+    <table class = "table table-bordered">
+        <thead>
+        <tr>
+            <th>Raw Material</th>
+            <th>{{ms}}</th>
+            <th>Processing Wt</th>
+            <th>{{proc_wt}}</th>
+        </tr>
+        </thead>
+    </table>
+
+    <h2 align="center">Order Details</h2>
+    <table class = "table table-bordered">
+    {% if operation == "CTL" or operation == "Lamination" %}
+    <thead>
+        <tr>
+            <th>Output Size</th>
+            <th>Numbers x packets</th>
+            <th>Lamination</th>
+            <th>Tolerance</th>
+            <th>Packing</th>
+            <th>Remarks</th>
+        </tr>
+    </thead>
+    <tbody>
+
+    {% for order_detail in order_dtl_lst %}
+
+
+        <tr>
+
+            <td>{{order_detail.cut_width}} x {{order_detail.cut_length}}</td>
+            <td>{{order_detail.no_per_packet}} x {{order_detail.no_of_packets}}</td>
+            <td>{{order_detail.lamination}}</td>
+            <td>{{order_detail.tolerance}}</td>
+            <td>{{order_detail.packing}}</td>
+            <td>{{order_detail.remarks}}</td>
+
+        </tr>
+
+
+    {% endfor %}
+        </tbody>
+    </table>
+    {% for order_detail in order_dtl_lst %}
+            {% for processing_hdr, processing_id in processing_hdr_lst %}
+                {% if processing_hdr.order_id == order_detail.order_id %}
+                    <h2 align="center">Processing</h2>
+                    <table class = "table table-bordered">
+                        <tr>
+
+                            <th>Total Processing Wt</th>
+                            <th>Total No. of cuts</th>
+                            <th>Procesing Date</th>
+                            <th>Procesing Start Time</th>
+                            <th>Procesing End Time</th>
+                            <th>Procesing Time Taken</th>
+                            <th>Name of QC</th>
+                            <th>Name of helpers</th>
+                            <th>Name of packers</th>
+                        </tr>
+                        <tr>
+                            <td>{{processing_hdr.total_processed_wt}}</td>
+                            <td>{{processing_hdr.total_cuts}}</td>
+                            <td>{{processing_hdr.processing_date}}</td>
+                            <td>{{processing_hdr.start_time}}</td>
+                            <td>{{processing_hdr.end_time}}</td>
+                            <td>{{processing_hdr.processing_time}}</td>
+                            <td>{{processing_hdr.names_of_qc}}</td>
+                            <td>{{processing_hdr.name_of_packer}}</td>
+                        </tr>
+
+                    </table>
+
+                {% endif %}
+
+
+            {% endfor %}
+
+    {% endfor %}
+
+    </tbody>
+    </table>
+    {% endif %}
+
+    {% if operation == "Narrow_CTL" or operation == "Reshearing"  or operation == "Levelling" %}
+    <thead>
+        <tr>
+            <th>Output Size</th>
+            <th>Numbers x packets</th>
+            <th>Tolerance</th>
+            <th>Packing</th>
+            <th>Remarks</th>
+        </tr>
+    </thead>
+    <tbody>
+
+        {% for order_detail in order_dtl_lst %}
+
+        <tr>
+
+            <td>{{order_detail.cut_width}} x {{order_detail.cut_length}}</td>
+            <td>{{order_detail.no_per_packet}} x {{order_detail.no_of_packets}}</td>
+            <td>{{order_detail.tolerance}}</td>
+            <td>{{order_detail.packing}}</td>
+            <td>{{order_detail.remarks}}</td>
+
+        </tr>
+
+        {% endfor %}
+        </tbody>
+
+    {% endif %}
+
+    {% if operation == "Slitting" or operation == "Mini_Slitting" %}
+    <thead>
+        <tr>
+            <th>Output Size</th>
+            <th>No. of Slits</th>
+            <th>No. of Parts</th>
+            <th>Length/part</th>
+            <th>Tolerance</th>
+            <th>Packing</th>
+            <th>Remarks</th>
+        </tr>
+    </thead>
+    <tbody>
+
+        {% for order_detail in order_dtl_lst %}
+
+        <tr>
+
+            <td>{{order_detail.cut_width}} x {{order_detail.cut_length}}</td>
+            <td>{{order_detail.numbers}}</td>
+            <td>{{order_detail.no_of_packets}}</td>
+            <td>{{order_detail.no_per_packet}}</td>
+            <td>{{order_detail.tolerance}}</td>
+            <td>{{order_detail.packing}}</td>
+            <td>{{order_detail.remarks}}</td>
+
+        </tr>
+
+        {% endfor %}
+        </tbody>
+    {% endif %}
+
+
+
+    <br><br><hr style="border-top: 5px solid #4d0000;">
+    <!--p style="page-break-before: always;"-->
+    {% endfor %}
+
     <h3>Processing</h3>
     <table class = "table table-sm table-striped">
 
@@ -168,7 +326,7 @@
         </tr>
     </table>
 
-        <h3>Dispatch Details</h3>
+
         <table class = "table table-sm">
             <tr>
                     <th>SMPL No.</th>
@@ -199,50 +357,7 @@
     </table>
 
 </body>
+
+
 </html>
 
-<!--{% for order_hdr in order_hdr_lst %}
-
-        <tr>
-            <td> <b>SMPL No.: {{order_hdr.smpl_no}}</b></td>
-        </tr>
-        <tr>
-            <td>Order Date: {{order_hdr.order_date}}</td>
-            <td>Expected Date: {{order_hdr.expected_date}}</td>
-        </tr>
-        <tr>
-            <td>Processing Weight: {{order_hdr.processing_wt}}</td>
-            <td>Status: {{order_hdr.status}}</td>
-
-        </tr>
-        <tr>
-            <td>Remarks: {{order_hdr.remarks}}</td>
-        <hr>
-        </tr>
-            {% for order_detail in order_detail_lst %}
-                {% for order_dtl in order_detail %}
-                <tr>
-                    <td>Operation: {{order_dtl.operation}}</td>
-                    <td>Mother Size: {{order_dtl.ms_width}} x {{order_dtl.ms_length}}</td>
-                    <td>Cut Size: {{order_dtl.cut_width}} x {{order_dtl.cut_length}}</td>
-                </tr>
-                <tr>
-                    <td>Processing Weight: {{order_dtl.processing_wt}}</td>
-                    <td>Numbers: {{order_dtl.numbers}}</td>
-                    <td>WIP/FG: {{order_dtl.fg_yes_no}}</td>
-                </tr>
-                 <tr>
-                    <td>Numbers/Packet: {{order_dtl.no_per_packet}}</td>
-                    <td>No. of Packets: {{order_dtl.no_of_packets}}</td>
-                    <td>Packing: {{order_dtl.packing}}</td>
-                </tr>
-                <tr>
-
-                    <td>Stage No: {{order_dtl.stage_no}}</td>
-                    <td>Tolerance: +{{order_dtl.positive_tolerance}}/-{{order_dtl.negative_tolerance}}</td>
-                    <td>Remarks: {{order_dtl.remarks}}</td>
-                </tr>
-
-                {% endfor %}
-            {% endfor %}
-        {% endfor %}-->

@@ -909,6 +909,7 @@ var controller = (function(orderCtrl, UICtrl) {
             document.querySelector(DOM.currentPkg).hidden = false;
             document.querySelector(DOM.currentPkgHdr).hidden = false;
             document.querySelector(DOM.currentPkg).required = true;
+            document.querySelector(DOM.currentPkg).value = " ";
             //document.querySelector(DOM.currentNoOfPkts).value = "1";
 
         }

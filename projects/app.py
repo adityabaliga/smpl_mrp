@@ -599,24 +599,6 @@ def view_order():
     for order_detail_id, order_detail in _order_detail_lst:
         order_detail_lst.append(order_detail)
 
-    '''for order_detail in order_detail_lst:
-        operation = order_detail.operation
-        stage_no = order_detail.stage_no
-        #order_detail_by_stage_and_op_lst.append(order_detail)
-        ms = str(order_detail.ms_width) + " x " + str(order_detail.ms_length)
-        proc_wt = 0
-        for order_detail2 in order_detail_lst:
-            if order_detail2.operation == operation and stage_no == order_detail2.stage_no:
-                order_detail_by_stage_and_op_lst.append(order_detail2)
-                proc_wt += order_detail2.processing_wt
-                # order_detail_lst.remove(order_detail2)
-        order_detail_for_print_lst.append(order_detail_by_stage_and_op_lst)
-        operation_lst.append(operation)
-        ms_lst.append(ms)
-        proc_wt_lst.append(proc_wt)
-        for order_detail3 in order_detail_by_stage_and_op_lst:
-            order_detail_lst.remove(order_detail3)
-        order_detail_by_stage_and_op_lst = []'''
 
     i=0
     while len(order_detail_lst) >0:
@@ -830,7 +812,8 @@ def processing_load():
                                processing_details_lst=processing_detail_lst, cs_rm=cs_rm, cs_rm_id=cs_rm_id, order=order,
                                order_detail_lst=zip(order_detail_id_lst_by_operation,order_detail_lst_by_operation),
                                _order_detail_lst=zip(order_detail_id_lst_by_operation, order_detail_lst_by_operation),
-                               numbers=numbers, order_id=order_id, stage_no=stage_no,
+                               numbers=numbers, order_id=order_id, stage_no=stage_no, total_order_wt = total_order_wt,
+                               total_completed_proc_wt = total_completed_proc_wt,
                                completed_processing_details_lst = zip(order_detail_lst_by_operation,
                                                                                 completed_processing_wt_lst,
                                                                                 completed_processing_numbers_lst))
@@ -844,7 +827,8 @@ def processing_load():
                                processing_details_lst=processing_detail_lst, cs_rm=cs_rm, cs_rm_id=cs_rm_id, order=order,
                                order_detail_lst=zip(order_detail_id_lst_by_operation,order_detail_lst_by_operation),
                                _order_detail_lst=zip(order_detail_id_lst_by_operation, order_detail_lst_by_operation),
-                               numbers=numbers, order_id=order_id,
+                               numbers=numbers, order_id=order_id, total_order_wt = total_order_wt,
+                               total_completed_proc_wt = total_completed_proc_wt,
                                completed_processing_details_lst = zip(order_detail_lst_by_operation,
                                                                                 completed_processing_wt_lst,
                                                                                 completed_processing_numbers_lst))
@@ -854,7 +838,8 @@ def processing_load():
                                processing_details_lst=processing_detail_lst, cs_rm=cs_rm, cs_rm_id=cs_rm_id, order=order,
                                order_detail_lst=zip(order_detail_id_lst_by_operation,order_detail_lst_by_operation),
                                _order_detail_lst=zip(order_detail_id_lst_by_operation, order_detail_lst_by_operation),
-                               numbers=numbers, order_id=order_id, stage_no=stage_no,
+                               numbers=numbers, order_id=order_id, stage_no=stage_no, total_order_wt = total_order_wt,
+                               total_completed_proc_wt = total_completed_proc_wt,
                                completed_processing_details_lst = zip(order_detail_lst_by_operation,
                                                                                 completed_processing_wt_lst,
                                                                                 completed_processing_numbers_lst))
@@ -864,7 +849,8 @@ def processing_load():
                                processing_details_lst=processing_detail_lst, cs_rm=cs_rm, cs_rm_id=cs_rm_id, order=order,
                                order_detail_lst=zip(order_detail_id_lst_by_operation,order_detail_lst_by_operation),
                                _order_detail_lst=zip(order_detail_id_lst_by_operation, order_detail_lst_by_operation),
-                               numbers=numbers, order_id=order_id, stage_no=stage_no,
+                               numbers=numbers, order_id=order_id, stage_no=stage_no, total_order_wt = total_order_wt,
+                               total_completed_proc_wt = total_completed_proc_wt,
                                completed_processing_details_lst = zip(order_detail_lst_by_operation,
                                                                                 completed_processing_wt_lst,
                                                                                 completed_processing_numbers_lst))
@@ -880,6 +866,7 @@ def submit_processing():
     if request.method == 'POST':
         smpl_no = request.form['smpl_no']
         operation = request.form['operation']
+        order_id = request.form['order_id']
 
         input_size = request.form['input_material']
         output_width_lst = request.form.getlist('output_width')
@@ -913,6 +900,7 @@ def submit_processing():
         setting_time = request.form['setting_time']
 
         total_processed_wt = Decimal(request.form['total_processed_wt'])
+        balance_proc_wt = Decimal(request.form['balance_wt'])
         total_cuts = int(request.form['total_cuts'])
         rm_wt = Decimal(request.form['input_weight'])
         cs_rm_id = request.form['cs_rm_id']
@@ -920,7 +908,7 @@ def submit_processing():
         # Processing object created and saved to db
         processing = Processing(smpl_no, operation, processing_date, start_time, end_time, setting_start_time,
                                 setting_end_time, processing_time, setting_time, no_of_qc, no_of_helpers, names_of_qc, 
-                                names_of_helpers, name_of_packer, setting_date, total_processed_wt, total_cuts)
+                                names_of_helpers, name_of_packer, setting_date, total_processed_wt, total_cuts, order_id)
         processing_id = processing.save_to_db()
 
         # Slitting/Mini Slitting and CTL/Reshearing/NCTL are managed differently
@@ -967,7 +955,8 @@ def submit_processing():
                     else:
                         no_of_ms_consumed = actual_no_of_pieces
 
-                    # Reduce weight of mother material by the processed weight of cut material
+                    # Reduce weight of mother material by the processed weight of cut material - balance weight remaining in the mother material
+                    processed_wt = Decimal(processed_wt) + balance_proc_wt
                     rm_status = CurrentStock.change_wt(smpl_no, ms_width, ms_length, processed_wt, no_of_ms_consumed, "minus")
 
                     if rm_status == "complete":
@@ -1044,7 +1033,7 @@ def submit_processing():
                     # Increase weight of cut material by processed weight. If cut material, doesn't already exist, the
                     # function returns insert => a new record has to be inserted
                     cc_insert = CurrentStock.change_wt(smpl_no, output_width, output_length, processed_wt,
-                                                       length_per_part, "plus")
+                                                       no_of_coils, "plus")
 
                     # Unit of the material is decided based on the machine used to process the material.
                     # WARNING: This is bad programming
@@ -1283,64 +1272,160 @@ def enter_smpl_no():
 
 @app.route('/history_show_details', methods=['GET', 'POST'])
 def history_show_details():
-    smpl_no = ""
+    smpl_number = ""
+    file_list = ""
     if request.method == 'POST':
-        smpl_no = request.form['smpl_no']
+        smpl_number = request.form['smpl_no']
     if request.method == 'GET':
-        smpl_no = request.args.get('smpl_no')
+        smpl_number = request.args.get('smpl_no')
 
-    smpl_no = str(smpl_no).upper().replace(" ", "")
+    dispatch_hdr_lst = []
+    dispatch_dtl_lst, _dispatch_dtl_lst = [], []
+    dispatch_id_lst = []
+    order_lst, order_id_lst, _order_lst, order_lst_by_smpl, order_id_lst_by_smpl = [], [], [], [], []
+    _processing_hdr_lst, processing_hdr_lst, processing_hdr_id_lst= [], [], []
+    _order_dtl_lst, order_dtl_lst, order_dtl_id_lst = [], [], []
+    order_dtl_lst_by_orderid, order_dtl_id_lst_by_orderid = [],[]
+    processing_dtl_lst, processing_dtl_lst_by_order_dtl = [], []
+    cs_lst, _cs_lst = [], []
+
+    smpl_number = str(smpl_number).upper().replace(" ", "")
     #smpl_no.replace(" ", "")
-    smpl_no_lst = Incoming.smpl_no_list_for_history(smpl_no)
+    smpl_no_lst = Incoming.smpl_no_list_for_history(smpl_number)
+
     if smpl_no_lst:
-        incoming = Incoming.load_smpl_by_smpl_no(smpl_no)
-
-        processing_return_lst = []
-        processing_id_lst = []
-        processing_lst =[]
-        processing_hdr_lst = []
-        processing_dtl_lst = []
-        dispatch_hdr_lst = []
-        dispatch_dtl_lst = []
-        dispatch_id_lst = []
+        # the query from incoming returns smpl_nos in ascending order. The original number is always going to be the
+        # the first element
+        incoming = Incoming.load_smpl_by_smpl_no(smpl_no_lst[0])
         for smpl_no in smpl_no_lst:
-            user_data = Processing.load_history(smpl_no)
-            processing_lst = []
-            processing_id_lst = []
-            for lst in user_data:
-                processing = Processing(smpl_no=lst[1], operation=str(lst[2]), processing_date=lst[3], start_time=lst[4],
-                                        end_time=lst[5], processing_time=lst[6], setting_start_time=lst[7],
-                                        setting_end_time=lst[8], setting_time=lst[9], no_of_qc=lst[10],
-                                        no_of_helpers=lst[11], names_of_qc=lst[12], names_of_helpers=lst[13],
-                                        name_of_packer=lst[14], setting_date=lst[15], total_processed_wt = Decimal(lst[16]),
-                                        total_cuts=int(lst[17]))
-                processing_lst.append(processing)
-                processing_id_lst.append(int(lst[0]))
+            _cs_lst = (CurrentStock.load_smpl_for_history(smpl_no))
+            if _cs_lst:
+                for cs in _cs_lst:
+                    cs_lst.append(cs)
+            _order_lst = Order.history_load_from_db(smpl_no)
+            for ordr_id, ordr in _order_lst:
+                order_id_lst.append(ordr_id)
+                order_lst.append(ordr)
+                _order_dtl_lst = OrderDetail.load_from_db(smpl_no,ordr_id)
+                for _ordr_dtl_id, _ordr_dtl in _order_dtl_lst:
+                    order_dtl_id_lst.append(_ordr_dtl_id)
+                    order_dtl_lst.append(_ordr_dtl)
+                    processing_dtl_lst.append(ProcessingDetail.load_history(_ordr_dtl_id))
+                _processing = Processing.load_history(ordr_id)
+                for processing_id, processing in _processing:
+                    processing_hdr_lst.append(processing)
+                    processing_hdr_id_lst.append(processing_id)
+            order_lst_by_smpl.append(order_lst)
+            order_id_lst_by_smpl.append(order_id_lst)
+            order_dtl_lst_by_orderid.append(order_dtl_lst)
+            order_dtl_id_lst_by_orderid.append(order_dtl_id_lst)
+
+        _dispatch_dtl_lst.append(DispatchDetail.load_from_db(smpl_no))
+        for dispatch_dtl_sublst in _dispatch_dtl_lst:
+            for dispatch_dtl in dispatch_dtl_sublst:
+                dispatch_id_lst.append(int(dispatch_dtl.dispatch_id))
+                dispatch_dtl_lst.append(dispatch_dtl)
+
+        dispatch_id_lst = list(set(dispatch_id_lst))
+        dispatch_lst = []
+        for dispatch_id in dispatch_id_lst:
+            dispatch_hdr_lst.append(DispatchHeader.load_from_db(dispatch_id))
+            dispatch_lst = dispatch_hdr_lst[0]
 
 
+        return render_template('/hist_view.html', incoming=incoming, file_list=file_list,
+                               smpl_no_lst=smpl_no_lst,
+                               order_lst_by_smpl=zip(order_lst,order_id_lst),
+                               order_id_lst_by_smpl=order_id_lst_by_smpl,
+                               order_dtl_id_lst_by_orderid = order_dtl_id_lst_by_orderid,
+                               order_dtl_lst_by_orderid = order_dtl_lst_by_orderid,
+                               order_dtl_lst = order_dtl_lst,
+                               processing_dtl_lst = processing_dtl_lst,
+                               processing_hdr_lst= zip(processing_hdr_lst, processing_hdr_id_lst),
+                               dispatch_hdr_lst=zip(dispatch_lst, dispatch_id_lst),
+                               dispatch_dtl_lst=dispatch_dtl_lst,
+                               cs_lst=cs_lst)
 
-            processing_dtl_lst.append(ProcessingDetail.load_history(smpl_no))
-
-            dispatch_dtl_lst.append(DispatchDetail.load_from_db(smpl_no))
-            for dispatch_dtl_sublst in dispatch_dtl_lst:
-                for dispatch_dtl in dispatch_dtl_sublst:
-                    dispatch_id_lst.append(int(dispatch_dtl.dispatch_id))
-
-            dispatch_id_lst = list(set(dispatch_id_lst))
-            dispatch_lst = []
-            for dispatch_id in dispatch_id_lst:
-                dispatch_hdr_lst.append(DispatchHeader.load_from_db(dispatch_id))
-                dispatch_lst = dispatch_hdr_lst[0]
-
-        file_list = FileUploader.get_files_for_smpl_no(smpl_no)
-
-        return render_template('/history_view.html', incoming=incoming, file_list=file_list,
-                               processing_hdr_lst = zip(processing_lst, processing_id_lst),
-                               processing_dtl_lst = processing_dtl_lst[0],
-                               dispatch_hdr_lst=zip(dispatch_lst,dispatch_id_lst),
-                               dispatch_dtl_lst=dispatch_dtl_lst)
     else:
-        return render_template('/main_menu.html')
+        return render_template('/main_menu.html', message= smpl_number + " not found.")
+
+    '''
+    dispatch_hdr_lst=zip(dispatch_lst, dispatch_id_lst),
+                           dispatch_dtl_lst=dispatch_dtl_lst, smpl_no_lst = smpl_no_lst,
+                           order_lst = order_lst_by_smpl,
+                           order_id_lst= order_id_lst_by_smpl, order_dtl_lst = order_dtl_lst_by_orderid,
+                           order_dtl_id_lst = order_dtl_lst_by_orderid,
+                           processing_lst = processing_hdr_lst_by_orderid,
+                           processing_id_lst = processing_hdr_id_lst,
+                           processing_dtl_lst = processing_dtl_lst_by_order_dtl
+                           
+    order_lst = Order.history_load_from_db(smpl_no)
+    if order_lst:
+        for order_id, _order in order_lst:
+            _order_detail_lst = OrderDetail.load_from_db(smpl_no, order_id)
+            order = _order
+            processing_lst.append(Processing.load_history(order_id))
+
+        for _processing in processing_lst:
+            for processing_id, processing in _processing:
+                processing_hdr_lst.append(processing)
+                processing_id_lst.append(processing_id)
+
+        for order_detail_id, order_detail in _order_detail_lst:
+            order_detail_lst.append(order_detail)
+            order_detail_id_lst.append(order_detail_id)
+            _processing_dtl_lst =(ProcessingDetail.load_history(order_detail_id))
+            for processing_dtl in _processing_dtl_lst:
+                processing_dtl_lst.append(processing_dtl)
+
+
+        i = 0
+        while len(order_detail_lst) > 0:
+            operation = order_detail_lst[i].operation
+            stage_no = order_detail_lst[i].stage_no
+            # order_detail_by_stage_and_op_lst.append(order_detail)
+            ms = str(order_detail_lst[i].ms_width) + " x " + str(order_detail_lst[i].ms_length)
+            proc_wt = 0
+            for order_detail2 in order_detail_lst:
+                if order_detail2.operation == operation and stage_no == order_detail2.stage_no:
+                    order_detail_by_stage_and_op_lst.append(order_detail2)
+                    proc_wt += order_detail2.processing_wt
+                    # order_detail_lst.remove(order_detail2)
+            order_detail_for_print_lst.append(order_detail_by_stage_and_op_lst)
+            operation_lst.append(operation)
+            stage_no_lst.append(stage_no)
+            ms_lst.append(ms)
+            proc_wt_lst.append(proc_wt)
+            for order_detail3 in order_detail_by_stage_and_op_lst:
+                order_detail_lst.remove(order_detail3)
+            order_detail_by_stage_and_op_lst = []
+
+
+
+        _dispatch_dtl_lst.append(DispatchDetail.load_from_db(smpl_no))
+        for dispatch_dtl_sublst in _dispatch_dtl_lst:
+            for dispatch_dtl in dispatch_dtl_sublst:
+                dispatch_id_lst.append(int(dispatch_dtl.dispatch_id))
+                dispatch_dtl_lst.append(dispatch_dtl)
+
+        dispatch_id_lst = list(set(dispatch_id_lst))
+        dispatch_lst = []
+        for dispatch_id in dispatch_id_lst:
+            dispatch_hdr_lst.append(DispatchHeader.load_from_db(dispatch_id))
+            dispatch_lst = dispatch_hdr_lst[0]
+
+    # file_list = FileUploader.get_files_for_smpl_no(smpl_no)
+    file_list = ""
+
+    # processing_hdr_lst = zip(processing_lst, processing_id_lst),
+    # processing_dtl_lst = processing_dtl_lst[0],
+return render_template('/history_view.html', incoming=incoming, file_list=file_list,
+                        dispatch_hdr_lst=zip(dispatch_lst,dispatch_id_lst),
+                       dispatch_dtl_lst=dispatch_dtl_lst, order=order,
+                           order_detail_lst=zip(order_detail_for_print_lst, operation_lst, ms_lst, proc_wt_lst,
+                                                stage_no_lst),
+                       processing_hdr_lst = zip(processing_hdr_lst,processing_id_lst), processing_dtl_lst = processing_dtl_lst)'''
+
 
 
 @app.route('/daily_report_pick_date', methods=['GET', 'POST'])
@@ -1357,23 +1442,26 @@ def get_daily_report():
     processing_lst=[]
     processing_id_lst= []
     processing_dtl_lst = []
+    incoming_lst = []
+    dispatch_hdr_lst = []
 
     incoming_lst = Incoming.get_daily_report(report_date)
 
     processing_hdr_lst = Processing.get_daily_report(report_date)
     for lst in processing_hdr_lst:
-        processing = Processing(smpl_no=lst[1], operation=str(lst[2]), processing_date=lst[3], start_time=lst[4],
-                                end_time=lst[5], processing_time=lst[6], setting_start_time=lst[7],
-                                setting_end_time=lst[8], setting_time=lst[9], no_of_qc=lst[10],
-                                no_of_helpers=lst[11], names_of_qc=lst[12], names_of_helpers=lst[13],
-                                name_of_packer=lst[14], setting_date=lst[15])
+        processing = Processing(smpl_no=lst[1], operation=lst[2], processing_date=lst[3], start_time=lst[4],
+                                        end_time=lst[5], processing_time=int(lst[6]), setting_start_time=lst[7],
+                                        setting_end_time=lst[8], setting_time=int(lst[9]), no_of_qc=lst[10],
+                                        no_of_helpers=lst[11], names_of_qc=lst[12], names_of_helpers=lst[13],
+                                        name_of_packer=lst[14], setting_date=lst[15], total_processed_wt = Decimal(lst[16]),
+                                        total_cuts=int(lst[17]), order_id = lst[18])
         processing_lst.append(processing)
         processing_id_lst.append(int(lst[0]))
 
     for processing_id in processing_id_lst:
         processing_dtl_lst.append(ProcessingDetail.load_for_report(processing_id))
 
-    dispatch_dtl_lst = DispatchDetail.get_daily_report(report_date)
+    dispatch_hdr_lst = DispatchHeader.get_dispatch_lst_by_date(report_date)
 
     return render_template('/main_menu.html')
 

@@ -167,13 +167,13 @@ class Incoming:
 
     @classmethod
     def smpl_no_list_for_history(cls,smpl_no):
-        query_smpl_no = smpl_no + '%'
+        query_smpl_no = '%' + smpl_no + '%'
         smpl_no_lst = []
         with CursorFromConnectionFromPool() as cursor:
-            cursor.execute("select smpl_no from incoming where smpl_no like %s",(query_smpl_no,))
+            cursor.execute("select smpl_no from incoming where smpl_no like %s order by smpl_no asc",(query_smpl_no,))
             user_data = cursor.fetchall()
         for smpl_no in user_data:
-            smpl_no_lst.append(smpl_no[0])
+            smpl_no_lst.append(smpl_no)
         return smpl_no_lst
 
     @classmethod
