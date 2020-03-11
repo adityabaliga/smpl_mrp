@@ -45,15 +45,15 @@
             <tr>
                 <th>Vehicle No.</th>
                 <th>Customer</th>
-                <th>Dispatch Date</th>
+                <th>Total Wt</th>
                 <th>Dispatch Time</th>
             </tr>
-        {% for hdr_id, hdr in dispatch_hdr_lst %}
+        {% for hdr in dispatch_hdr_lst %}
             <tr>
-                <td><input type = "radio" name = "select_dispatch_hdr" value = {{hdr_id}}>  {{hdr.vehicle_no}}</input></td>
-                <td>{{hdr.customer}}</td>
-                <td>{{hdr.dispatch_date}}</td>
-                <td>{{hdr.dispatch_time}}</td>
+                <td><input type = "radio" name = "select_dispatch_hdr" value = {{hdr[1]}}>  {{hdr[3]}}</input></td>
+                <td>{{hdr[2]}}</td>
+                <td>{{hdr[0]}}</td>
+                <td>{{hdr[4]}}</td>
             </tr>
         {% endfor %}
 

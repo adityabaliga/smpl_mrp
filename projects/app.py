@@ -178,7 +178,8 @@ def submit_smpl_incoming():
 def tr_incoming_commit():
     smpl_no = ""
     if request.method == 'POST':
-        smpl_no = "TR" + request.form['smpl_no']
+        tr_prefix = request.form['tr_prefix']
+        smpl_no = tr_prefix + request.form['smpl_no']
         smpl_no = smpl_no.replace(" ", "")
         customer = request.form['customer']
         incoming_date = request.form['incoming_date']
@@ -900,6 +901,7 @@ def submit_processing():
         setting_time = request.form['setting_time']
 
         total_processed_wt = Decimal(request.form['total_processed_wt'])
+        total_processed_wt = Decimal(request.form['total_processed_wt'])
         balance_proc_wt = Decimal(request.form['balance_wt'])
         total_cuts = int(request.form['total_cuts'])
         rm_wt = Decimal(request.form['input_weight'])
@@ -912,7 +914,7 @@ def submit_processing():
         processing_id = processing.save_to_db()
 
         # Slitting/Mini Slitting and CTL/Reshearing/NCTL are managed differently
-        if operation == "CTL" or operation == "Reshearing" or operation == "Narrow_CTL":
+        if operation == "CTL" or operation == "Reshearing" or operation == "Narrow_CTL" or operation == "Lamination" or operation=="Levelling":
             lamination_lst = request.form.getlist('lamination')
             for output_width, output_length, actual_no_of_pieces, actual_no_of_packets, processed_wt, \
                 remarks, lamination, order_detail_id, fg_yes_no in zip(output_width_lst, output_length_lst, actual_no_of_pieces_lst,
@@ -1444,26 +1446,25 @@ def get_daily_report():
     processing_dtl_lst = []
     incoming_lst = []
     dispatch_hdr_lst = []
+    total_incoming = 0
 
     incoming_lst = Incoming.get_daily_report(report_date)
+    for incoming in incoming_lst:
+        total_incoming += incoming[1]
 
     processing_hdr_lst = Processing.get_daily_report(report_date)
-    for lst in processing_hdr_lst:
-        processing = Processing(smpl_no=lst[1], operation=lst[2], processing_date=lst[3], start_time=lst[4],
-                                        end_time=lst[5], processing_time=int(lst[6]), setting_start_time=lst[7],
-                                        setting_end_time=lst[8], setting_time=int(lst[9]), no_of_qc=lst[10],
-                                        no_of_helpers=lst[11], names_of_qc=lst[12], names_of_helpers=lst[13],
-                                        name_of_packer=lst[14], setting_date=lst[15], total_processed_wt = Decimal(lst[16]),
-                                        total_cuts=int(lst[17]), order_id = lst[18])
-        processing_lst.append(processing)
-        processing_id_lst.append(int(lst[0]))
 
-    for processing_id in processing_id_lst:
-        processing_dtl_lst.append(ProcessingDetail.load_for_report(processing_id))
 
     dispatch_hdr_lst = DispatchHeader.get_dispatch_lst_by_date(report_date)
 
-    return render_template('/main_menu.html')
+    return render_template('/daily_report.html', date = change_date_format(report_date), incoming_lst = incoming_lst,
+                           total_incoming = total_incoming, processing_hdr_lst = processing_hdr_lst,
+                           dispatch_hdr_lst = dispatch_hdr_lst)
+
+def change_date_format(date):
+    split_date = date.split('-')
+    new_date = split_date[2] + '-' + split_date[1] + '-' + split_date[0]
+    return new_date
 
 if __name__ == '__main__':
     app.config["SECRET_KEY"] = "SMPLMRP"

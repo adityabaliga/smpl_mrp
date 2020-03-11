@@ -16,7 +16,7 @@ function setFocusToTextBox(operation){
 // This function is to set the focus when the page loads for slitting operation
 function setFocusToTextBox_Slit(){
 
-        document.getElementById("order_numbers").focus();
+        document.getElementById("no_of_slits").focus();
 
 }
 

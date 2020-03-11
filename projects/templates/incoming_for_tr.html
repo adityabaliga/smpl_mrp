@@ -42,7 +42,11 @@
     <table>
     <tr>
         <td>SMPL No</td>
-        <td>TR-<input type="text" name="smpl_no"  required></td>
+        <td><select name="tr_prefix">
+                <option value="TR" default>TR</option>
+                <option value="MRR">MRR</option>
+            </select>
+            <input type="text" name="smpl_no"  required></td>
     </tr>
     <tr>
         <td>Customer</td>

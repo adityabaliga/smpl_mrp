@@ -80,6 +80,10 @@ class Processing:
     @classmethod
     def get_daily_report(cls, report_date):
         with CursorFromConnectionFromPool() as cursor:
-            cursor.execute('select * from processing where processing_date = %s', (report_date, ))
+            # cursor.execute('select * from processing where processing_date = %s order by operation asc', (report_date, ))
+            cursor.execute('select sum(processing_detail.processed_numbers), sum(processing_detail.processed_wt), '
+                           'sum(production_time), processing_detail.machine from processing, processing_detail where '
+                           'processing_date = %s and processing.processing_id = processing_detail.processing_id '
+                           'group by  processing_detail.machine',(report_date,))
             user_data = cursor.fetchall()
         return user_data

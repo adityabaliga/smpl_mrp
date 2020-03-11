@@ -58,6 +58,9 @@ class Incoming:
             # The dimensions of the coil are extracted and then split and then stored separately as thk, width & length
             stock_item = rm.getElementsByTagName("STOCKITEMNAME")[0]
             coil_dim = stock_item.firstChild.data
+
+            # In tally, sometimes RM is added when incoming is sheets or slit coils. This is to remove that
+            coil_dim = coil_dim.replace('RM','')
             coil_dimension = coil_dim.split('X')
 
             # Coil Dimension has to be split in to length, width and thickness

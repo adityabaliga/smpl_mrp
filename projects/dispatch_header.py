@@ -25,12 +25,11 @@ class DispatchHeader:
         dispatch_lst = []
         dispatch_hdr_id_lst = []
         with CursorFromConnectionFromPool() as cursor:
-            cursor.execute("select * from dispatch_header where dispatch_date = %s order by dispatch_time asc",(date,))
+            cursor.execute("select sum(weight), dispatch_detail.dispatch_id,  customer, vehicle_no, dispatch_time  from dispatch_header, dispatch_detail "
+                            "where dispatch_date = %s and dispatch_header.dispatch_id = dispatch_detail.dispatch_id "
+                            "group by dispatch_header.customer, dispatch_detail.dispatch_id, vehicle_no, dispatch_time",(date,))
             user_data = cursor.fetchall()
-        for lst in user_data:
-            dispatch_lst.append(DispatchHeader(lst[1], lst[6], lst[2], lst[3], lst[5]))
-            dispatch_hdr_id_lst.append(lst[0])
-        return zip(dispatch_hdr_id_lst,dispatch_lst)
+            return user_data
 
 
     @classmethod

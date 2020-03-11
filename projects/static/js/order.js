@@ -592,7 +592,7 @@ var controller = (function(orderCtrl, UICtrl) {
 
 
         //calculate length of coil
-        if(document.getElementById('length').value == "0.0"){
+        if(parseInt(document.getElementById('length').value) == 0){
             console.log(document.getElementById('length').value);
 
             length_of_coil = (parseFloat(document.querySelector(DOM.mc_weight).value))/parseFloat(document.querySelector(DOM.mc_width).value)
@@ -1041,9 +1041,10 @@ var controller = (function(orderCtrl, UICtrl) {
         input_material = document.querySelector(DOM.currentInputMaterial).value;
         input_material = input_material.split(" x ");
         ip_width = parseFloat(input_material[0]);
+        currentWidth = parseFloat(document.querySelector(DOM.currentWidth).value);
 
         //This is wt of each individual slit for full coil
-        wt_of_slit = parseFloat(document.querySelector(DOM.currentOpProcWt).value) * parseFloat(document.querySelector(DOM.currentWidth).value) / ip_width;
+        wt_of_slit = parseFloat(document.querySelector(DOM.currentOpProcWt).value) * parseFloat(document.querySelector(DOM.currentWidth).value) / ip_width ;
         length_of_slit = wt_of_slit/parseFloat(document.querySelector(DOM.currentWidth).value)
             /parseFloat(document.querySelector(DOM.thickness).value)/0.00000785;
 
@@ -1116,7 +1117,7 @@ var controller = (function(orderCtrl, UICtrl) {
 
         ip_mtrl_selected = ip_mtrl_selected.split(' ');
         ip_mtrl_wt = parseFloat(ip_mtrl_selected[3]);
-        if(ip_mtrl_wt < input.processing_wt){
+        if(ip_mtrl_wt * 1.05 < input.processing_wt){
             alert('Processing Wt is greater than input material weight');
             return false;
         }
