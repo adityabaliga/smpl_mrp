@@ -56,11 +56,15 @@ class CurrentStock:
                 return None
 
     @classmethod
-    def smpl_list_for_place_order(cls):
+    def smpl_list_for_place_order(cls, string):
         user_data = []
         cs_lst = []
+        if string == 'SMPL':
+            query = "select * from current_stock where customer not like 'TSPDL%' and status = 'RM' or status = 'HC' order by smpl_no asc"
+        if string == 'TR':
+            query = "select * from current_stock where customer like 'TSPDL%'  and status = 'RM' or status = 'HC' order by smpl_no asc"
         with CursorFromConnectionFromPool() as cursor:
-            cursor.execute("select * from current_stock where status = 'RM' or status = 'HC' order by smpl_no asc")
+            cursor.execute(query)
             user_data = cursor.fetchall()
 
         if user_data:
@@ -237,7 +241,7 @@ class CurrentStock:
         cs_lst = []
         cs_id_lst =[]
         with CursorFromConnectionFromPool() as cursor:
-            cursor.execute("select * from current_stock where status = 'RM'")
+            cursor.execute("select * from current_stock where status = 'RM' order by smpl_no asc")
             user_data = cursor.fetchall()
         for lst in user_data:
             cs = CurrentStock(smpl_no=lst[1],weight = Decimal(lst[2]),numbers=int(lst[3]),width=Decimal(lst[4]),

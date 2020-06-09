@@ -406,7 +406,17 @@ def upload_docs_submit():
 # A smpl list is got whose status is RM. The list is sent to the html
 @app.route('/smpl_for_order', methods=['GET', 'POST'])
 def smpl_for_order():
-    smpl_lst = CurrentStock.smpl_list_for_place_order()
+    smpl_lst = CurrentStock.smpl_list_for_place_order('SMPL')
+    if smpl_lst:
+        return render_template('order_pick_smpl.html', smpl_lst=smpl_lst)
+    else:
+        return render_template('/main_menu.html', message="No material to place order")
+
+
+# A smpl list is got whose status is RM. The list is sent to the html
+@app.route('/tr_for_order', methods=['GET', 'POST'])
+def tr_for_order():
+    smpl_lst = CurrentStock.smpl_list_for_place_order('TR')
     if smpl_lst:
         return render_template('order_pick_smpl.html', smpl_lst=smpl_lst)
     else:
@@ -655,17 +665,17 @@ def orders_by_machine():
                     cs_id_lst.append(cs_id)
             # cs_lst.append(
                 #   CurrentStock.load_smpl_by_smplno(order_detail.smpl_no, order_detail.ms_length, order_detail.ms_width))
-            order_return_lst = Order.load_from_db(order_detail.smpl_no, "Open")
+            # order_return_lst = Order.load_from_db(order_detail.smpl_no, "Open")
             # Expected date got from order and displayed in dd/mm/YYYY format
-            for order_id, order in order_return_lst:
-                expected_date_lst.append(order.expected_date.strftime('%d/%m/%Y'))
+            # for order_id, order in order_return_lst:
+            #    expected_date_lst.append(order.expected_date.strftime('%d/%m/%Y'))
 
         # This list are which are in Not ready state. This is to indicate the total pressure that is there on the machine
         order_detail_not_ready_list = OrderDetail.smpl_lst_by_operation("Not Ready", operation)
         cs_not_ready_lst = []
         order_not_ready_lst = []
         expected_date_for_not_ready_lst = []
-        for order_detail in order_detail_not_ready_list:
+        '''for order_detail in order_detail_not_ready_list:
             cs = CurrentStock.load_smpl_by_smplno(order_detail.smpl_no, order_detail.ms_length, order_detail.ms_width)
             if str(cs.unit) == str(current_user.unit):
                 cs_not_ready_lst.append()
@@ -673,15 +683,15 @@ def orders_by_machine():
             #   CurrentStock.load_smpl_by_smplno(order_detail.smpl_no, order_detail.ms_length, order_detail.ms_width))
             order_not_ready_lst = Order.load_from_db(order_detail.smpl_no, "Open")
             for order_id, _order in order_not_ready_lst:
-                expected_date_for_not_ready_lst.append(_order.expected_date.strftime('%d/%m/%Y'))
+                expected_date_for_not_ready_lst.append(_order.expected_date.strftime('%d/%m/%Y'))'''
 
     if current_user.unit == 0:
         return render_template('/processing_pick_unit.html', operation=operation)
 
 
     if cs_lst:
-        return render_template('processing_pick_smpl.html', cs_lst=zip(cs_id_lst, cs_lst, expected_date_lst), operation=operation,
-                               cs_not_ready_lst=zip(cs_not_ready_lst, expected_date_for_not_ready_lst))
+        return render_template('processing_pick_smpl.html', cs_lst=zip(cs_id_lst, cs_lst), operation=operation,
+                               cs_not_ready_lst=zip(cs_not_ready_lst))
     else:
         return render_template('/main_menu.html', message="No raw material or WIP available!")
 
@@ -711,10 +721,10 @@ def processing_pick_unit():
                 cs_lst.append(cs)
                 cs_id_lst.append(cs_id)
 
-        order_return_lst = Order.load_from_db(order_detail.smpl_no, "Open")
+        # order_return_lst = Order.load_from_db(order_detail.smpl_no, "Open")
         # Expected date got from order and displayed in dd/mm/YYYY format
-        for order_id, order in order_return_lst:
-            expected_date_lst.append(order.expected_date.strftime('%d/%m/%Y'))
+        # for order_id, order in order_return_lst:
+         #   expected_date_lst.append(order.expected_date.strftime('%d/%m/%Y'))
 
     # This list are which are in Not ready state. This is to indicate the total pressure that is there on the machine
     order_detail_not_ready_list = OrderDetail.smpl_lst_by_operation("Not Ready", operation)
@@ -734,8 +744,8 @@ def processing_pick_unit():
             expected_date_for_not_ready_lst.append(_order.expected_date.strftime('%d/%m/%Y'))'''
 
     if cs_lst:
-        return render_template('processing_pick_smpl.html', cs_lst=zip(cs_id_lst,cs_lst, expected_date_lst), operation=operation,
-                               cs_not_ready_lst=zip(cs_id_not_ready_lst,cs_not_ready_lst, expected_date_for_not_ready_lst))
+        return render_template('processing_pick_smpl.html', cs_lst=zip(cs_id_lst,cs_lst), operation=operation,
+                               cs_not_ready_lst=zip(cs_id_not_ready_lst,cs_not_ready_lst))
     else:
         return render_template('/main_menu.html', message="No raw material or WIP available!")
 
@@ -773,7 +783,7 @@ def processing_load():
     order_detail_id_lst_by_operation = []
     total_order_wt = 0
     for order_detail_id, order_detail in order_detail_lst:
-        if order_detail.operation.startswith(operation) and order_detail.status == 'Ready':
+        if order_detail.operation.startswith(operation) and order_detail.status == 'Ready' and order_detail.ms_width == cs_rm.width and order_detail.ms_length == cs_rm.length:
             order_detail_lst_by_operation.append(order_detail)
             order_detail_id_lst_by_operation.append(order_detail_id)
             numbers += order_detail.numbers
@@ -795,6 +805,7 @@ def processing_load():
         completed_processing_wt_lst.append(completed_processing_wt)
         total_completed_proc_wt += completed_processing_wt
         completed_processing_numbers_lst.append(completed_processing_numbers)
+    total_completed_proc_wt = round(total_completed_proc_wt,3)
 
     if operation == "CTL":
         unit = current_user.unit
@@ -881,6 +892,7 @@ def submit_processing():
         remarks_lst = request.form.getlist('remarks')
 
         machine = request.form['machine']
+        temp_machine = machine
         processing_date = request.form['processing_date']
         start_time = request.form['start_time']
         end_time = request.form['end_time']
@@ -900,7 +912,7 @@ def submit_processing():
         setting_end_time = request.form['setting_end_time']
         setting_time = request.form['setting_time']
 
-        total_processed_wt = Decimal(request.form['total_processed_wt'])
+        #total_processed_wt = Decimal(request.form['total_processed_wt'])
         total_processed_wt = Decimal(request.form['total_processed_wt'])
         balance_proc_wt = Decimal(request.form['balance_wt'])
         total_cuts = int(request.form['total_cuts'])
@@ -925,7 +937,7 @@ def submit_processing():
                 ms_length = ip_size[1]
 
                 if lamination != "no-lami" and lamination != "No Lamination":
-                    machine += " " + lamination
+                    machine = temp_machine + " " + lamination
 
                 if processed_wt != '' and Decimal(processed_wt) > 0.0:
                     # Get mother size and cut size from the screen. Create processing detail and then update to db
@@ -949,17 +961,24 @@ def submit_processing():
                         scrap_per_ms = ((ms_weight / output_weight) % 1)
                         total_scrap = Decimal(scrap_per_ms) * Decimal(no_of_ms_consumed) / Decimal(1000)
 
-                        processed_wt = Decimal(processed_wt) - round(total_scrap,3)
+                        # the weight of RM to be reduced is the weight of FG + the scrap generated
+                        rm_processed_wt = Decimal(processed_wt) + round(total_scrap,3)
 
                     elif operation == "Narrow_CTL":
                         no_of_ms_consumed = rm_wt/Decimal(processed_wt)
+                        rm_processed_wt = processed_wt
+
+                    elif operation == "CTL":
+                        no_of_ms_consumed = 0
+                        rm_processed_wt = processed_wt
 
                     else:
                         no_of_ms_consumed = actual_no_of_pieces
+                        rm_processed_wt =  processed_wt
 
                     # Reduce weight of mother material by the processed weight of cut material - balance weight remaining in the mother material
-                    processed_wt = Decimal(processed_wt) + balance_proc_wt
-                    rm_status = CurrentStock.change_wt(smpl_no, ms_width, ms_length, processed_wt, no_of_ms_consumed, "minus")
+                    rm_processed_wt = Decimal(rm_processed_wt) + balance_proc_wt
+                    rm_status = CurrentStock.change_wt(smpl_no, ms_width, ms_length, rm_processed_wt, no_of_ms_consumed, "minus")
 
                     if rm_status == "complete":
                         # This is done when the RM is over but for some reason the order could not be completed
@@ -1011,49 +1030,52 @@ def submit_processing():
             # processed_wt = processed_wt_lst[0]
             remarks = remarks_lst[0]
             output_length = 0
+
+
             for output_width, fg_yes_no, no_of_slits, order_detail_id in zip(
                     output_width_lst, fg_yes_no_lst, no_of_slits_lst, order_detail_id_lst):
+                if no_of_slits != '':
+                    if int(no_of_slits) > 0 and no_of_parts > 0:
+                        # Get number of coils produced for size = no of slits x no of parts
+                        no_of_coils = int(no_of_slits) * no_of_parts
+                        # This is processed weight for that size
+                        processed_wt = Decimal(thickness * float(output_width) * length_per_part * 0.00000785 * no_of_coils)
+                        processed_wt = round(processed_wt, 3)
 
-                # Get number of coils produced for size = no of slits x no of parts
-                no_of_coils = int(no_of_slits) * no_of_parts
-                # This is processed weight for that size
-                processed_wt = Decimal(thickness * float(output_width) * length_per_part * 0.00000785 * no_of_coils)
-                processed_wt = round(processed_wt, 3)
-
-                # Processing details updated to db
-                if processed_wt > 0:
-                    processing_detail = ProcessingDetail(smpl_no, operation, machine, processing_id, output_width,
-                                                         output_length, no_of_coils, length_per_part,
-                                                         remarks, processed_wt, ms_width, ms_length, order_detail_id)
+                        # Processing details updated to db
+                        if processed_wt > 0:
+                            processing_detail = ProcessingDetail(smpl_no, operation, machine, processing_id, output_width,
+                                                                 output_length, no_of_coils, length_per_part,
+                                                                 remarks, processed_wt, ms_width, ms_length, order_detail_id)
 
 
-                    processing_detail.save_to_db()
+                            processing_detail.save_to_db()
 
-                    # Reduce weight of mother material by the processed weight of cut material
-                    CurrentStock.change_wt(smpl_no, ms_width, ms_length, processed_wt, length_per_part, "minus")
+                            # Reduce weight of mother material by the processed weight of cut material
+                            CurrentStock.change_wt(smpl_no, ms_width, ms_length, processed_wt, length_per_part, "minus")
 
-                    # Increase weight of cut material by processed weight. If cut material, doesn't already exist, the
-                    # function returns insert => a new record has to be inserted
-                    cc_insert = CurrentStock.change_wt(smpl_no, output_width, output_length, processed_wt,
-                                                       no_of_coils, "plus")
+                            # Increase weight of cut material by processed weight. If cut material, doesn't already exist, the
+                            # function returns insert => a new record has to be inserted
+                            cc_insert = CurrentStock.change_wt(smpl_no, output_width, output_length, processed_wt,
+                                                               no_of_coils, "plus")
 
-                    # Unit of the material is decided based on the machine used to process the material.
-                    # WARNING: This is bad programming
-                    unit = '2'
+                            # Unit of the material is decided based on the machine used to process the material.
+                            # WARNING: This is bad programming
+                            unit = '2'
 
-                    # The new material is added to current stock
-                    if cc_insert == "insert":
-                        cs_cc = CurrentStock(smpl_no, customer, processed_wt, no_of_coils, thickness,
-                                             output_width, output_length, fg_yes_no, grade, unit)
-                        cs_cc.save_to_db()
+                            # The new material is added to current stock
+                            if cc_insert == "insert":
+                                cs_cc = CurrentStock(smpl_no, customer, processed_wt, no_of_coils, thickness,
+                                                     output_width, output_length, fg_yes_no, grade, unit)
+                                cs_cc.save_to_db()
 
-                    # This checks if detail is complete by comparing the processed weight and order detail weight.
-                    # If the order detail is complete, it checks if all the order details in that stage are complete 
-                    # (check_stage_complete)
-                    # If all the order details in that stage are complete, it makes the order details of the next stage 
-                    # ready for production
-                    # If this is the last stage of the order, it marks the order as closed
-                    OrderDetail.detail_complete(order_detail_id)
+                            # This checks if detail is complete by comparing the processed weight and order detail weight.
+                            # If the order detail is complete, it checks if all the order details in that stage are complete
+                            # (check_stage_complete)
+                            # If all the order details in that stage are complete, it makes the order details of the next stage
+                            # ready for production
+                            # If this is the last stage of the order, it marks the order as closed
+                            OrderDetail.detail_complete(order_detail_id)
 
             # This is for the slitter maintenance
             # Get the slitter batches and numbers used in slitting
@@ -1070,8 +1092,10 @@ def submit_processing():
                         slitter_usage.save_to_db()
 
         # I'm assuming if less than 3% of the rm weight remains, that the material is over and the rm can be deleted
-        balance_wt = abs(rm_wt - total_processed_wt)
-        if balance_wt/rm_wt < 0.03:
+        # balance_proc_wt is >0, if the mother material if order wt > processed wt but user wants to mark the order complete
+        # subtracting this from rm_wt will make the balance wt < 0.03 of rm_wt and thus, help us mark the order complete
+        balance_wt = (rm_wt - total_processed_wt - abs(balance_proc_wt))
+        if (balance_wt/rm_wt) < 0.03:
             OrderDetail.complete_processing_on_del(smpl_no, ms_width, ms_length)
             CurrentStock.delete_record(cs_rm_id)
 
@@ -1163,6 +1187,7 @@ def dispatch():
         dispatch_date = request.args.get('dispatch_date')
         dispatch_time = request.args.get('dispatch_time')
         remarks = request.args.get('remarks')
+        invoice_no = request.args.get('invoice_no')
 
     # This fetches the list and removes the elements that are not selected
     # The ones that are not selected are returned as None. The below list filters out the Nones
@@ -1171,7 +1196,7 @@ def dispatch():
     defectives_lst = list(filter(None, defectives))
     dispatch_pkts_lst = list(filter(None,dispatch_pkts))
 
-    dispatch_header = DispatchHeader(vehicle_no, customer, dispatch_date, dispatch_time, remarks)
+    dispatch_header = DispatchHeader(vehicle_no, customer, dispatch_date, dispatch_time, invoice_no, remarks)
     dispatch_id = dispatch_header.save_to_db()
 
     # For the items to be dispatched, dispatch detail is created and the current stock quantity is deleted or reduced
@@ -1322,17 +1347,19 @@ def history_show_details():
             order_dtl_lst_by_orderid.append(order_dtl_lst)
             order_dtl_id_lst_by_orderid.append(order_dtl_id_lst)
 
-        _dispatch_dtl_lst.append(DispatchDetail.load_from_db(smpl_no))
-        for dispatch_dtl_sublst in _dispatch_dtl_lst:
-            for dispatch_dtl in dispatch_dtl_sublst:
-                dispatch_id_lst.append(int(dispatch_dtl.dispatch_id))
-                dispatch_dtl_lst.append(dispatch_dtl)
+            _dispatch_dtl_lst.append(DispatchDetail.load_from_db(smpl_no))
+            for dispatch_dtl_sublst in _dispatch_dtl_lst:
+                for dispatch_dtl in dispatch_dtl_sublst:
+                    dispatch_id_lst.append(int(dispatch_dtl.dispatch_id))
+                    dispatch_dtl_lst.append(dispatch_dtl)
 
         dispatch_id_lst = list(set(dispatch_id_lst))
         dispatch_lst = []
+        i = 0
         for dispatch_id in dispatch_id_lst:
             dispatch_hdr_lst.append(DispatchHeader.load_from_db(dispatch_id))
-            dispatch_lst = dispatch_hdr_lst[0]
+            dispatch_lst.append(dispatch_hdr_lst[i][0])
+            i+=1
 
 
         return render_template('/hist_view.html', incoming=incoming, file_list=file_list,

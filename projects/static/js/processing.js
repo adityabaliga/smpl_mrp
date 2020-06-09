@@ -14,9 +14,13 @@ function setFocusToTextBox(operation){
 
 
 // This function is to set the focus when the page loads for slitting operation
-function setFocusToTextBox_Slit(){
+function setFocusToTextBox_Slit(operation){
 
         document.getElementById("no_of_slits").focus();
+        if(operation == "Mini_Slitting"){
+            add_row_for_length();
+        }
+
 
 }
 
@@ -88,6 +92,7 @@ function time_taken(){
     alert("Please re-enter the time. End time must be greater than start time");
     document.getElementById("start_time").focus();
    }
+   validate();
 }
 
 function time_taken_setting(){
@@ -118,7 +123,6 @@ function get_part_weight(){
     var input_material = (document.getElementById("input_material").value);
     input_material = input_material.split("x");
 
-
     var width = Number(input_material[0]);
     rm_wt = Number(document.getElementById("weight").value);
 
@@ -135,6 +139,22 @@ function get_part_weight(){
 
 }
 
+function add_row_for_length(){
+    var input_size_tbl = document.getElementById('numbers_pkts1');
+    var input_material, newHTML;
+    var input_mtrl_array = [];
+    var html = '<tr><td><input type = "text" id="ip_sz_for_length" value = "%input_sz%" readonly></td><td><input type="number" id="length_run_for_sz" value = ""></td><td><input type="number" id="no_of_parts_for_sz" value = "" readonly><td><input type="number" id="wt_run_for_sz" value = "" readonly></td></tr>'
+    for(i=1;i<input_size_tbl.rows.length;i++){
+        if (input_mtrl_array.includes(input_size_tbl.rows[i].cells[0].childNodes[0].value)== false){
+            input_mtrl_array.push(input_size_tbl.rows[i].cells[0].childNodes[0].value);
+        }
+    }
+    for(i=0;i<input_mtrl_array.length;i++){
+        newHTML = html.replace('%input_sz%', input_mtrl_array[i]);
+        document.getElementById('length_processed').insertAdjacentHTML('beforeend', newHTML);
+    }
+
+}
 
 function addRow(tableID)
 	 {
@@ -175,7 +195,7 @@ function validate(){
     completed_proc_wt = Number(document.getElementById("tot_proc_wt").value);
 
     if (total_order_wt*0.98 > (total_processed_wt + completed_proc_wt)){
-        order_completed_chk = confirm("Order weight is greater than Processing Weight. Should the order be marked complete?");
+        order_completed_chk = confirm("Order weight is greater than Processing Weight. Should the order be marked complete? /nPress OK to mark order complete");
         }
         if(order_completed_chk == false){
             document.getElementById("balance_wt").value = 0;

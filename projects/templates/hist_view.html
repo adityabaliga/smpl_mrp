@@ -235,8 +235,9 @@
     {% endfor %}
 
     <h3>Dispatch Details</h3>
-     <table class = "table table-sm">
+
         {% for dispatch_hdr, dispatch_id in dispatch_hdr_lst %}
+        <table class = "table table-sm">
          <tr>
                 <th>Vehicle No.</th>
                 <th>Customer</th>
@@ -250,7 +251,7 @@
                 <td>{{dispatch_hdr.dispatch_date}}</td>
                 <td>{{dispatch_hdr.dispatch_time}}</td>
                 <td>{{dispatch_hdr.remarks}}</td>
-                <td>{{dispatch_id}}</td>
+
         </tr>
     </table>
 
@@ -282,8 +283,9 @@
                 </tr>
                 {% endif %}
             {% endfor %}
+            </table>
         {% endfor %}
-    </table>
+
 
 </body>
 

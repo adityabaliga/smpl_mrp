@@ -46,6 +46,7 @@
                 <th>Vehicle No.</th>
                 <th>Customer</th>
                 <th>Total Wt</th>
+                <th>Invoice No</th>
                 <th>Dispatch Time</th>
             </tr>
         {% for hdr in dispatch_hdr_lst %}
@@ -53,6 +54,7 @@
                 <td><input type = "radio" name = "select_dispatch_hdr" value = {{hdr[1]}}>  {{hdr[3]}}</input></td>
                 <td>{{hdr[2]}}</td>
                 <td>{{hdr[0]}}</td>
+                <td>{{hdr[5]}}</td>
                 <td>{{hdr[4]}}</td>
             </tr>
         {% endfor %}

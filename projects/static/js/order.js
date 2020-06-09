@@ -33,7 +33,8 @@ var orderController = (function () {
             Mini_Slitting: [],
             Narrow_CTL: [],
             Reshearing: [],
-            Lamination: []
+            Lamination: [],
+            Levelling: []
         },
         totals: {
             operation_prc_wt: [],
@@ -434,7 +435,7 @@ var UIController = (function() {
            for (i=0;i<newInput.length;i++){
 
 
-                html = '<option value="%input_size%" "%sel" "%disabled">%input_size%    %wt% MT</option>';
+                html = '<option value="%input_size%" %sel% %disabled%>%input_size%    %wt% MT</option>';
 
                 newHTML = html.replace('%input_size%', newInput[i].input_size);
                 newHTML = newHTML.replace('%input_size%', newInput[i].input_size);
@@ -442,14 +443,14 @@ var UIController = (function() {
 
                //If all the material used then the user should not be able to select it in the input material
                if(newInput[i].weight === "0.000"){
-                   newHTML = newHTML.replace('%disabled%', "disabled");
+                   newHTML = newHTML.replace('%disabled%', 'disabled');
                }else{
-                   newHTML = newHTML.replace('%disabled%', "");
+                   newHTML = newHTML.replace('%disabled%', '');
                    }
                  // If the mother size is the input size, it should be automatically selected.
                 if(mother_size == newInput[i].input_size){
                    if(fromFunction !== "addOperation"){
-                     newHTML = newHTML.replace('%sel%', "selected");
+                     newHTML = newHTML.replace('%sel%', 'selected');
                  }
 
                    // Width of CTL size is set only on change of input material. When we add size, the user does not change input material,

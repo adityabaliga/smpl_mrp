@@ -50,23 +50,23 @@
 
             </tr>
 
-        {% for cs_id, cs, expected_date in cs_lst %}
+        {% for cs_id, cs in cs_lst %}
             <tr>
                 <td><input type = "radio" name = "select_smpl" value = "{{cs_id}}" required>  {{cs.smpl_no}}</input></td>
                 <td>{{cs.customer}}</td>
                 <td>{{cs.weight}}</td>
                 <td>{{cs.thickness}} x {{cs.width}} x {{cs.length}}</td>
-                <td>{{expected_date}}</td>
+
             </tr>
         {% endfor %}
 
-        {% for cs_id_not_ready, cs_not_ready, expected_date_not_ready in cs_not_ready_lst %}
+        {% for cs_id_not_ready, cs_not_ready in cs_not_ready_lst %}
             <tr>
                 <td>{{cs_not_ready.smpl_no}}</td>
                 <td>{{cs_not_ready.customer}}</td>
                 <td>{{cs_not_ready.weight}}</td>
                 <td>{{cs_not_ready.thickness}} x {{cs_not_ready.width}} x {{cs_not_ready.length}}</td>
-                <td>{{expected_date_not_ready}}</td>
+
             </tr>
         {% endfor %}
 

@@ -33,7 +33,7 @@
 </head>
 
 <body onload="setFocusToTextBox_Slit('{{operation}}')">
-<form action="/submit_processing" method="post">
+<form action="/submit_processing" method="post" onsubmit="return validate()">
 
      <div class="topnav" id="myTopnav">
         <br>
@@ -199,6 +199,7 @@
     <h3 align = "center">Processing Details</h3>
     <table class = "table table-sm" id="numbers_pkts1">
         <tr>
+            <th>Input Material</th>
             <th>Output Width</th>
             <th>Number of Slits</th>
             <!--th>FG/WIP</th-->
@@ -206,8 +207,9 @@
         </tr>
         {% for order_detail_id, order_detail in _order_detail_lst %}
         <tr>
+            <td><input type = "text" name = "ms_size" id = "ms_size" value = "{{order_detail.ms_width}} x {{order_detail.ms_length}}" readonly></td>
             <td><input type = "number" name = "output_width" id = "output_width" value ={{order_detail.cut_width}}></td>
-            <td><input type = "number" name = "no_of_slits" id = "no_of_slits"></td>
+            <td><input type = "number" name = "no_of_slits" id = "no_of_slits" ></td>
             <!--td>
                 <select name="fg_yes_no" id="fgyesno">
                     <option value="FG">FG</option>
@@ -222,7 +224,18 @@
 
         </tr>
         {% endfor %}
+
     </table>
+    <table class = "table table-sm" id = "length_processed" class="length_processed">
+        <tr>
+            <th>Input Size</th>
+            <th>Length Processed (in m)</th>
+            <th>No. of Parts</th>
+            <th>Weight (in MT)</th>
+        </tr>
+
+    </table>
+
     <table class = "table table-sm" id="numbers_pkts">
         <tr>
             <th>Total Length Processed</th>
@@ -240,7 +253,7 @@
 
 
             <th>Total Processed Weight (in MT)</th>
-            <td><input type ="number" name = "total_processed_wt" id = "total_processed_wt" onchange="validate()" readonly></td>
+            <td><input type ="number" name = "total_processed_wt" id = "total_processed_wt" readonly></td>
 
             <th>Remarks</th>
             <td><input type = "text" name = "remarks" style="width:300px;" id = "remarks"></td>
@@ -305,18 +318,7 @@
         <tr>
         <td>
             <select name="slitter_batch" id="slitter_batch">
-                <option name="CR-AP-A">CR-AP-A</option>
-                <option name="CR-DT-15-A">CR-DT-15-A</option>
-                <option name="CR-DT-A">CR-DT-A</option>
-                <option name="CR-DT-AC">CR-DT-AC</option>
-                <option name="CR-DT-B">CR-DT-B</option>
-                <option name="CR-DT-D">CR-DT-D</option>
-                <option name="HR-AP-25-A">HR-AP-25-A</option>
-                <option name="HR-DT-15-A">HR-DT-15-A</option>
-                <option name="HR-DT-12-A">HR-DT-12-A</option>
-                <option name="HR-DT-20-A">HR-DT-20-A</option>
-                <option name="HR-DT-20-B">HR-DT-20-B</option>
-                <option name="HR-DT-25-A">HR-DT-25-A</option>
+
                 <option name="MS-CR-BBS-12.7-A">MS-CR-BBS-12.7-A</option>
                 <option name="MS-CR-DT-10-A">MS-CR-DT-10-A</option>
                 <option name="MS-CR-DT-12.2-A">MS-CR-DT-12.2-A</option>
