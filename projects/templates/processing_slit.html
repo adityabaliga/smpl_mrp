@@ -33,7 +33,7 @@
 </head>
 
 <body onload="setFocusToTextBox_Slit('{{operation}}')">
-<form action="/submit_processing" method="post">
+<form action="/submit_processing" onsubmit="return validateForm()" method="post">
 
      <div class="topnav" id="myTopnav">
         <br>
@@ -84,7 +84,7 @@
         <td>Grade</td>
         <td><input type="text"  name="grade"  value = "{{incoming.grade}}" readonly></td>
 
-        <td><input type="number"  name="order_id" id="order_id"  value = {{order_id}} hidden></td>
+        <!--td><input type="number"  name="order_id" id="order_id"  value = {{order_id}} hidden></td-->
 
     </tr>
     </table><hr>
@@ -114,7 +114,7 @@
     </table>
     </div>
 
-    <h3 align = "center">Order Details</h3>
+    <!--h3 align = "center">Order Details</h3>
     <div>
     <table class = "table table-sm">
 
@@ -129,10 +129,10 @@
 
             <th style="width:80px;">Tolerance</th>
             <!--th style="width:100px;">-ve Tolerance</th-->
-            <th style="width:60px;">FG/WIP</th>
+            <!--th style="width:60px;">FG/WIP</th>
 
             <!--th style="width:100px;">No.s per packet</th-->
-            <th style="width:100px;">Packing Type</th>
+            <!--th style="width:100px;">Packing Type</th>
             <th style="width:140px;">Output Weight (in MT)</th>
             <th style="width:100px;">Remarks</th>
 
@@ -147,7 +147,7 @@
             <td><input type = "text" name = "order_operation" value = "{{order_detail.operation}}" readonly></td>
 
             <!--td><input type ="number"  name = "cut_width" id = "cut_width" style="width:100px;" value = {{order_detail.cut_width}} readonly></td-->
-            <td><input type = "number" name = "order_cut_width" id = "order_cut_width" style="width:80px;" value = {{order_detail.cut_width}} readonly></td>
+            <!--td><input type = "number" name = "order_cut_width" id = "order_cut_width" style="width:80px;" value = {{order_detail.cut_width}} readonly></td>
             <td><input type = "number" name ="order_numbers" id = "order_numbers" style="width:100px;" value = {{order_detail.numbers}} readonly></td>
             <td><input type="text" name="order_no_per_packet" style="width:100px;" id = "order_no_per_packet" value= "{{order_detail.no_of_packets}} "  readonly></td>
             <td><input type="text" name="order_length_per_part" style="width:100px;" id = "order_length_per_part" value= "{{order_detail.no_per_packet}}"  readonly></td>
@@ -155,16 +155,16 @@
             <td><input type = "text" name ="order_tolerance" style="width:60px;"   value="{{order_detail.tolerance}}" readonly></td>
             <!--td><input type = "number" name ="negative_tolerance" style="width:80px;"   value ={{order_detail.negative_tolerance}} readonly></td-->
 
-            <td>
+            <!--td>
             <!--input type = "text" name = "fg_yes_no" id = "fg_yes_no" style="width:80px;" value = fg_wip({{order_detail.fg_yes_no}});-->
-            <input type = "text" id = "order_fg_yes_no" name= "order_fg_yes_no" style="width:60px;" value = {{order_detail.fg_yes_no}} readonly>
+            <!--input type = "text" id = "order_fg_yes_no" name= "order_fg_yes_no" style="width:60px;" value = {{order_detail.fg_yes_no}} readonly>
 
             </td>
 
 
 
             <!--td><input type="number" name = "no_of_packets" style="width:60px;" id = "no_of_packets" value ={{order_detail.no_of_packets}} readonly></td-->
-            <td><input type="text" name = "order_packing_type" style="width:200px;" id = "packing_type" value = "{{order_detail.packing}}" readonly></td>
+            <!--td><input type="text" name = "order_packing_type" style="width:200px;" id = "packing_type" value = "{{order_detail.packing}}" readonly></td>
             <td><input type = "number" name = "order_weight" id = "weight_order" style="width:100px;" placeholder="Weight (in MT)" value = {{order_detail.processing_wt}} readonly></td>
             <td><input type="text" name = "order_remarks" style="width:300px;" value="{{order_detail.remarks}}" readonly></td>
             <td><input type = "number" name = "order_detail_id" id = "order_detail_id1" value = {{order_detail_id}} hidden></td>
@@ -172,42 +172,42 @@
     {% endfor %}
     </table>
         <div>Total Order Wt (in MT)<input type = "number" name = "order_wt" id = "order_wt" value = {{total_order_wt}} readonly></div>
-    </div>
+    </div-->
 
-    <div>
+    <!--div>
     <h3 align = "center">Completed Processing</h3>
     <table class = "table table-sm">
         <tr>
             <th>Size</th>
             <!--th>Completed No.s</th-->
-            <th>Completed Wt</th>
+            <!--th>Completed Wt</th>
         </tr>
-    {% for order_detail, completed_processing_wt, completed_processing_numbers in completed_processing_details_lst %}
-        {% if completed_processing_wt > 0 %}
+
+
         <tr>
-            <td><input type = "text" name = "cut_size" value = "{{order_detail.cut_width}} x {{order_detail.cut_length}}" readonly></td>
+            <td><input type = "text" name = "cut_size" value = "{{cs_rm.width}} x {{cs_rm.length}}" readonly></td>
             <!--td><input type = "number" name = "completed_nos" value = {{completed_processing_numbers}} readonly></td-->
-            <td><input type = "number" name = "completed_wt" value = {{completed_processing_wt}} readonly></td>
+            <!--td><input type = "number" name = "completed_wt" value = {{completed_processing_wt}} readonly></td>
 
         </tr>
-        {% endif %}
-    {% endfor %}
+
+
     </table>
         <div>Total Processed Wt (in MT)<input type = "number" name = "tot_proc_wt" id = "tot_proc_wt" value = {{total_completed_proc_wt}} readonly></div>
-    </div>
+    </div-->
 
     <h3 align = "center">Processing Details</h3>
     <table class = "table table-sm" id="numbers_pkts1">
         <tr>
-            <th>Output Width</th>
-            <th>Number of Slits</th>
+            <th>Width (in mm)</th>
+            <th>Width Name</th>
             <!--th>FG/WIP</th-->
 
         </tr>
-        {% for order_detail_id, order_detail in _order_detail_lst %}
+
         <tr>
-            <td><input type = "number" name = "output_width" id = "output_width" value ={{order_detail.cut_width}}></td>
-            <td><input type = "number" name = "no_of_slits" id = "no_of_slits"></td>
+            <td><input type = "text" name = "output_width" id = "output_width" required></td>
+            <td><input type = "text" name = "width_name" id = "width_name"></td>
             <!--td>
                 <select name="fg_yes_no" id="fgyesno">
                     <option value="FG">FG</option>
@@ -216,19 +216,23 @@
                 </select>
             </td-->
 
-            <td><input type = "number" name = "order_detail_id" id = "order_detail_id" value = {{order_detail_id}} hidden></td>
-            <td><input type = "text" id = "fg_yes_no" name= "fg_yes_no" value = {{order_detail.fg_yes_no}} hidden></td>
-            <!--td><input type="button" name="add_size" id="add_size" value="Add Size" onclick="addRow('numbers_pkts1')"></td-->
+            <!--td><input type = "number" name = "order_detail_id" id = "order_detail_id" value = {{order_detail_id}} hidden></td-->
+            <td><select id = "fg_yes_no" name= "fg_yes_no" >
+                <option value = "FG">FG</option>
+                <option value = "WIP">WIP</option>
+            </select>
+            </td>
+            <td><input type="button" name="add_size" id="add_size" value="Add Size" onclick="addRow('numbers_pkts1')"></td>
 
         </tr>
-        {% endfor %}
+
     </table>
     <table class = "table table-sm" id="numbers_pkts">
         <tr>
             <th>Total Length Processed</th>
-            <td><input type = "number" name = "total_length" id="total_length" onfocusout ="get_part_weight('numbers_pkts1')"></td>
+            <td><input type = "number" name = "total_length" id="total_length" onchange ="get_part_weight('numbers_pkts1')"></td>
             <th>No. of Parts</th>
-            <td><input type = "number" name ="actual_no_of_packets" id = "actual_no_of_packets" value="1" onfocusout ="get_part_weight('numbers_pkts1')"></td>
+            <td><input type = "number" name ="packet_name" id = "packet_name"  onchange ="get_part_weight('numbers_pkts1')"></td>
 
             <th></th>
             <td><input type = "number" name = "actual_no_of_pieces" id = "actual_no_of_pieces" hidden></td>
@@ -240,7 +244,7 @@
 
 
             <th>Total Processed Weight (in MT)</th>
-            <td><input type ="number" name = "total_processed_wt" id = "total_processed_wt" onchange="validate()" readonly></td>
+            <td><input type ="number" name = "total_processed_wt" id = "total_processed_wt" readonly></td>
 
             <th>Remarks</th>
             <td><input type = "text" name = "remarks" style="width:300px;" id = "remarks"></td>
@@ -285,15 +289,15 @@
         </tr>
         <tr>
             <td>No. of fitters</td>
-            <td><input type = "number" name = "no_of_qc" id = "no_of_qc"></td>
+            <td><input type = "number" name = "no_of_qc" id = "no_of_qc" required></td>
             <td>No. of helpers</td>
-            <td><input type = "number" name = "no_of_helpers" id = "no_of_helpers"></td>
+            <td><input type = "number" name = "no_of_helpers" id = "no_of_helpers" required></td>
             <td>Names of fitters</td>
             <td><input type = "text" name = "names_of_qc" id = "names_of_qc"></td>
-            <td>Names of Helpers</td>
+            <!--td>Names of Helpers</td>
             <td><input type = "text" name = "names_of_helpers" id = "names_of_helpers"></td>
             <td>Names of Packers</td>
-            <td><input type = "text" name = "name_of_packer" id = "name_of_packer"></td>
+            <td><input type = "text" name = "name_of_packer" id = "name_of_packer"></td-->
         </tr>
     </table>
 
@@ -333,7 +337,7 @@
             </select>
         </td>
         <td>
-            <input type="text" name="slitter_number" id="slitter_number">
+            <input type="text" name="slitter_number" id="slitter_number" onfocusout="check_slitter_numbers('slitting_cutters')" >
         </td>
         <td>
             <input type="button" class="btn btn-default" value="Add Row" onclick="addRow('slitting_cutters')" >
@@ -341,9 +345,18 @@
         </tr>
     </table>
 
+    <!--p>
+        <span class="order_complete" style = "padding-right:20px;"><b>Is the order Complete?</b></span>
+            <select class="order_complete" id = "order_complete">
+                <option value = "true">Yes</option>
+                <option value = "false">No</option>
+
+            </select>
+    </p-->
+
     <p>
         <!--button type ="button" class="btn btn-default">Start</button-->
-        <input type="submit" name = "submit" class="btn btn-default" value="Submit">
+        <input type="submit" name = "submit" id = "submit" class="btn btn-default" value="Submit">
 
     </p>
 

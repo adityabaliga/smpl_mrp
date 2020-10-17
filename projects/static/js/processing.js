@@ -8,7 +8,7 @@ function setFocusToTextBox(operation){
         document.getElementById("output_width").focus();
     }
     if(operation == "CTL"){
-        document.getElementById("lamination").focus();
+        document.getElementById("output_length").focus();
     }
 }
 
@@ -34,16 +34,12 @@ function for_packets_and_weight(table_id,table_row,operation){
 	//var numbers = Number(last_row.cells[3].lastChild.value);
 	var thk = Number(document.getElementById('thickness').value);
 	//var weight_pos = 5;
+    var width =  Number(last_row.cells[0].lastChild.value);
 
-    if (operation == "Reshearing"){
-        var width =  Number(last_row.cells[0].lastChild.value);
-    }else{
-        var width =  Number(last_row.cells[0].lastChild.value);
-    }
 
     var length =  Number(last_row.cells[1].lastChild.value);
 
-    numbers =  Number(last_row.cells[3].lastChild.value);
+    var numbers =  Number(last_row.cells[4].lastChild.value);
     weight_pos = 5;
 
     var weight = (thk * width * length * numbers * 0.00000785)/1000;
@@ -58,18 +54,24 @@ function calculate_wt_and_cuts(table_id){
     var table = document.getElementById(table_id);
     var total_processed_wt =0;
     var total_cuts = 0;
+    var total_pkts;
     for (var i = 1, row; row = table.rows[i]; i++) {
         total_processed_wt += Number(row.cells[5].lastChild.value);
-        total_cuts += Number(row.cells[3].lastChild.value);
+        total_cuts += Number(row.cells[4].lastChild.value);
+
     }
-    var total_order_wt = Number(document.getElementById("order_wt").value);
-    var completed_proc_wt = Number(document.getElementById("tot_proc_wt").value);
-    var scrap_wt = total_order_wt - total_processed_wt - completed_proc_wt ;
+    //var total_order_wt = Number(document.getElementById("order_wt").value);
+    //var completed_proc_wt = Number(document.getElementById("tot_proc_wt").value);
+    //var scrap_wt = total_order_wt - total_processed_wt - completed_proc_wt ;
 
 
     document.getElementById("total_processed_wt").value = Number(total_processed_wt.toFixed(3));
     document.getElementById("total_cuts").value = total_cuts;
-    document.getElementById("balance_wt").value = scrap_wt.toFixed(3);
+    document.getElementById("total_packets").value = table.rows.length - 1;
+
+    validate();
+
+    //document.getElementById("balance_wt").value = scrap_wt.toFixed(3);
     //document.getElementById("scrap_wt").value = Number(scrap_wt.toFixed(3));
 }
 
@@ -92,7 +94,7 @@ function time_taken(){
     alert("Please re-enter the time. End time must be greater than start time");
     document.getElementById("start_time").focus();
    }
-   validate();
+    validate();
 }
 
 function time_taken_setting(){
@@ -137,6 +139,7 @@ function get_part_weight(){
 
     document.getElementById("balance_wt").value = scrap_wt.toFixed(3);
 
+    validate();
 }
 
 function add_row_for_length(){
@@ -191,17 +194,26 @@ function addRow(tableID)
 function validate(){
     var total_processed_wt, total_order_wt, completed_proc_wt, order_completed_chk;
     total_processed_wt = Number(document.getElementById("total_processed_wt").value);
-    total_order_wt = Number(document.getElementById("order_wt").value);
+    //total_order_wt = Number(document.getElementById("order_wt").value);
     completed_proc_wt = Number(document.getElementById("tot_proc_wt").value);
+    rm_wt = Number(document.getElementById("weight").value);
+    order_completed_chk = true;
 
-    if (total_order_wt*0.98 > (total_processed_wt + completed_proc_wt)){
-        order_completed_chk = confirm("Order weight is greater than Processing Weight. Should the order be marked complete? /nPress OK to mark order complete");
-        }
-        if(order_completed_chk == false){
-            document.getElementById("balance_wt").value = 0;
-        }
+    //if (total_order_wt*0.98 > (total_processed_wt + completed_proc_wt)){
+    //    order_completed_chk = confirm("Order weight is greater than Processing Weight. Should the order be marked complete? /nPress OK to mark order complete");
+    //    }
+    //if(order_completed_chk == false){
+    //    document.getElementById("balance_wt").value = 0;
+    //}
+    if((total_processed_wt + completed_proc_wt) > 1.05*rm_wt){
+        alert('Processed wt is greater than Input material weight. Please check');
+        document.getElementById('submit').disabled = true;
+    }
+    else{
+        document.getElementById('submit').disabled = false;
+    }
 
-    return true;
+
  }
 
 
@@ -232,5 +244,47 @@ function setting_done_change(){
         document.getElementById("setting_time").value = "1";
 
     }
+
+}
+
+function check_slitter_numbers(tableID){
+    var table = document.getElementById(tableID);
+    var i, slitter_lst, slitter_lst_array, row, flag;
+    var rowCount = table.rows.length;
+    flag = 0;
+
+    for (i=1; i< rowCount; i++){
+        row = table.rows[i];
+        slitter_lst = row.cells[1].lastElementChild.value;
+        slitter_lst_array = slitter_lst.split(' ');
+        for(j=0;j<slitter_lst_array.length;j++){
+            if(Number(slitter_lst_array[j]) > 50){
+                alert('Please check slitter numbers');
+                //document.getElementById('slitter_number').focus();
+                flag = 1;
+            }
+        }
+    }
+    if(flag == 1){ return false;}
+    else {return true;}
+}
+
+function validateForm(){
+// 1. If slitting check if all slitter numbers < 50
+// 2. Processed weight cannot be empty
+
+
+// First step check for all the nulls and empty fields
+
+    var total_processed_wt = document.getElementById('total_processed_wt').value;
+    if (total_processed_wt == ""){
+        alert('Processed weight is empty. Please check!');
+        return false;
+    }
+    var check_slitters = check_slitter_numbers('slitting_cutters');
+    if(check_slitters == false){
+        return false;
+    }
+
 
 }

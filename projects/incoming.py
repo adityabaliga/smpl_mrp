@@ -147,7 +147,7 @@ class Incoming:
             cursor.execute('select * from incoming where smpl_no = %s', (smpl_no,))
             user_data = cursor.fetchone()
             if user_data:
-                return cls(smpl_no=user_data[1], customer=user_data[2], incoming_date=user_data[3], thickness=user_data[4],
+                return cls(smpl_no=user_data[1], customer=user_data[2], incoming_date=change_date_format(user_data[3]), thickness=user_data[4],
                            width=user_data[5], length=user_data[6], grade=user_data[7], weight=user_data[8],
                            numbers=user_data[9],
                            mill=user_data[10], mill_id=user_data[11], remarks=user_data[12], unit = user_data[13])
@@ -158,6 +158,7 @@ class Incoming:
     def update_remarks_by_smpl_no(cls, remarks, smpl_no):
         with CursorFromConnectionFromPool() as cursor:
             cursor.execute('update incoming set Remarks = %s where smpl_no = %s', (remarks, smpl_no))
+
 
 
     @classmethod
@@ -187,3 +188,9 @@ class Incoming:
             user_data=cursor.fetchall()
 
         return user_data
+
+def change_date_format(date):
+    # split_date = date.split('-')
+    # new_date = split_date[2] + '-' + split_date[1] + '-' + split_date[0]
+    new_date = date.strftime('%d/%m/%Y')
+    return new_date

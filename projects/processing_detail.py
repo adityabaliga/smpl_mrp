@@ -3,7 +3,7 @@ from decimal import *
 
 class ProcessingDetail:
     def __init__(self, smpl_no, operation, machine, processing_id, cut_width, cut_length,  processed_numbers,
-                 processed_packets, remarks, processed_wt, input_width, input_length, order_detail_id):
+                 packet_name, remarks, processed_wt, input_width, input_length):
         self.smpl_no = smpl_no
         self.operation = operation
         self.machine = machine
@@ -11,12 +11,12 @@ class ProcessingDetail:
         self.cut_width = cut_width
         self.cut_length = cut_length
         self.processed_numbers = processed_numbers
-        self.processed_packets = processed_packets
+        self.packet_name = packet_name
         self.remarks = remarks
         self.processed_wt = processed_wt
         self.input_width = input_width
         self.input_length = input_length
-        self.order_detail_id = order_detail_id
+        #self.order_detail_id = order_detail_id
         #self.lamination = lamination
 
 
@@ -26,8 +26,8 @@ class ProcessingDetail:
     def save_to_db(self):
         with CursorFromConnectionFromPool() as cursor:
             cursor.execute("insert into processing_detail (smpl_no, operation, machine, processing_id, input_width,"
-                           "input_length, cut_width, cut_length, processed_numbers, processed_packets, processed_wt, "
-                           "remarks, order_detail_id) values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (self.smpl_no,
+                           "input_length, cut_width, cut_length, processed_numbers, packet_name, processed_wt, "
+                           "remarks) values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (self.smpl_no,
                                                                                             self.operation,
                                                                                             self.machine,
                                                                                             self.processing_id,
@@ -36,10 +36,9 @@ class ProcessingDetail:
                                                                                             self.cut_width,
                                                                                             self.cut_length,
                                                                                             self.processed_numbers,
-                                                                                            self.processed_packets,
+                                                                                            self.packet_name,
                                                                                             self.processed_wt,
-                                                                                            self.remarks,
-                                                                                            self.order_detail_id))
+                                                                                            self.remarks))
 
 
     @classmethod
@@ -53,10 +52,10 @@ class ProcessingDetail:
                 processing_dtl = ProcessingDetail(smpl_no=lst[1], operation=lst[2], machine=lst[3],
                                                   processing_id=int(lst[4]),
                                                   cut_width=Decimal(lst[5]), cut_length=Decimal(lst[6]),
-                                                  processed_numbers=int(lst[7]), processed_packets=int(lst[8]),
-                                                  remarks=lst[9], processed_wt=Decimal(lst[10]),
-                                                  input_width=Decimal(lst[11]), input_length=Decimal(lst[12]),
-                                                  order_detail_id=lst[13])
+                                                  processed_numbers=int(lst[7]),
+                                                  remarks=lst[8], processed_wt=Decimal(lst[9]),
+                                                  input_width=Decimal(lst[10]), input_length=Decimal(lst[11]),
+                                                  packet_name = lst[12])
                 processing_dtl_lst.append(processing_dtl)
             return processing_dtl_lst
 
@@ -70,10 +69,10 @@ class ProcessingDetail:
                 processing_dtl = ProcessingDetail(smpl_no=lst[1], operation=lst[2], machine=lst[3],
                                                   processing_id=int(lst[4]),
                                                   cut_width=Decimal(lst[5]), cut_length=Decimal(lst[6])
-                                                  , processed_numbers=int(lst[7]), processed_packets=int(lst[8]),
-                                                  processed_wt=Decimal(lst[10]), remarks=lst[9],
-                                                  input_width=Decimal(lst[11]), input_length=Decimal(lst[12]),
-                                                  order_detail_id=lst[13])
+                                                  , processed_numbers=int(lst[7]),
+                                                  processed_wt=Decimal(lst[9]), remarks=lst[8],
+                                                  input_width=Decimal(lst[10]), input_length=Decimal(lst[11]),
+                                                  packet_name = lst[12])
                 processing_dtl_lst.append(processing_dtl)
             return processing_dtl_lst
 
@@ -86,10 +85,10 @@ class ProcessingDetail:
             for lst in user_data:
                 processing_dtl = ProcessingDetail(smpl_no=lst[1], operation=lst[2], machine=lst[3],
                                                   processing_id=int(lst[4]),
-                                                  cut_width=Decimal(lst[5]), cut_length=Decimal(lst[6]),
-                                                  processed_numbers=int(lst[7]), processed_packets=int(lst[8]),
-                                                  remarks=lst[9], processed_wt=Decimal(lst[10]),
-                                                  input_width=Decimal(lst[11]), input_length=Decimal(lst[12]),
-                                                  order_detail_id=lst[13])
+                                                  cut_width=Decimal(lst[5]), cut_length=Decimal(lst[6])
+                                                  , processed_numbers=int(lst[7]),
+                                                  processed_wt=Decimal(lst[9]), remarks=lst[8],
+                                                  input_width=Decimal(lst[10]), input_length=Decimal(lst[11]),
+                                                  packet_name = lst[12])
                 processing_dtl_lst.append(processing_dtl)
             return processing_dtl_lst

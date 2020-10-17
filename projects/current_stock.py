@@ -60,9 +60,9 @@ class CurrentStock:
         user_data = []
         cs_lst = []
         if string == 'SMPL':
-            query = "select * from current_stock where customer not like 'TSPDL%' and status = 'RM' or status = 'HC' order by smpl_no asc"
+            query = "select * from current_stock where customer not like 'TSDPL%' and status = 'RM' or status = 'HC' order by smpl_no asc"
         if string == 'TR':
-            query = "select * from current_stock where customer like 'TSPDL%'  and status = 'RM' or status = 'HC' order by smpl_no asc"
+            query = "select * from current_stock where customer like 'TSDPL%'  and status = 'RM' or status = 'HC' order by smpl_no asc"
         with CursorFromConnectionFromPool() as cursor:
             cursor.execute(query)
             user_data = cursor.fetchall()
@@ -80,20 +80,26 @@ class CurrentStock:
 
 
     @classmethod
-    def smpl_list_for_processing(cls, operation, unit):
+    def smpl_list_for_processing(cls, operation, customer_type, unit):
         user_data = []
         cs_lst = []
         cs_id_lst = []
+
         if operation == "CTL" or operation == "Narrow CTL" or operation == "Slitting" or operation == "Mini Slitting":
             with CursorFromConnectionFromPool() as cursor:
-                cursor.execute("select * from current_stock where (status = 'RM' or status = 'HC' or status= 'WIP') and "
-                               "length = 0 and unit = %s order by smpl_no asc", (str(unit),))
+                if customer_type == "smpl":
+                    cursor.execute("select * from current_stock where (status = 'RM' or status = 'HC' or status= 'WIP') and "
+                                   "length = 0 and unit = %s  and customer not like 'TSPDL' order by smpl_no asc", (str(unit),))
+                if customer_type == "tr":
+                    cursor.execute(
+                        "select * from current_stock where (status = 'RM' or status = 'HC' or status= 'WIP') and "
+                        "length = 0 and unit = %s  and customer like 'TSPDL' order by smpl_no asc", (str(unit),))
                 user_data = cursor.fetchall()
 
         if operation == "Reshearing":
             with CursorFromConnectionFromPool() as cursor:
                 cursor.execute("select * from current_stock where (status = 'RM' or status = 'HC' or status= 'WIP') and "
-                               "length > 0  and unit = %s order by smpl_no asc", (str(unit),))
+                               "length > 0  and unit = %s and customer %s order by smpl_no asc", (str(unit), cust_query))
                 user_data = cursor.fetchall()
 
         if user_data:
@@ -194,6 +200,7 @@ class CurrentStock:
                 if new_weight < 0.15:
                     #OrderDetail.complete_processing_on_del(smpl_no, width, length)
                     #CurrentStock.delete_record(cs_id)
+
                     cursor.execute("delete from current_stock where smpl_no = %s and width = %s and length = %s",(smpl_no,width,length))
                     # This is done when the RM is over but for some reason the order could not be completed
                     # This could when the RM is thickness is more or wrong calc of material or processing mistake/change

@@ -71,7 +71,7 @@
             <th>Machine</th>
             <th>Total Weight (in MT)</th>
             <th>Total no. of cuts</th>
-            <th>Total Time</th>
+            <th>Total Time (in hrs)</th>
         </tr>
         {% for processing in processing_hdr_lst %}
         <tr>
@@ -92,8 +92,8 @@
         </tr>
         {% for dispatch in dispatch_hdr_lst %}
         <tr>
-            <td>{{dispatch[0]}}</td>
             <td>{{dispatch[1]}}</td>
+            <td>{{dispatch[0]}}</td>
 
         </tr>
         {% endfor %}

@@ -34,7 +34,7 @@
 </head>
 
 <body onload="setFocusToTextBox('{{operation}}')">
-<form action="/submit_processing" method="post">
+<form action="/submit_processing" onsubmit="return validateForm()" method="post">
      <div class="topnav" id="myTopnav">
         <br>
         <table>
@@ -284,9 +284,9 @@
         </tr>
         <tr>
             <td>No. of fitters</td>
-            <td><input type = "number" name = "no_of_qc" id = "no_of_qc"></td>
+            <td><input type = "number" name = "no_of_qc" id = "no_of_qc" required></td>
             <td>No. of helpers</td>
-            <td><input type = "number" name = "no_of_helpers" id = "no_of_helpers"></td>
+            <td><input type = "number" name = "no_of_helpers" id = "no_of_helpers" required></td>
             <td>Names of fitters</td>
             <td><input type = "text" name = "names_of_qc" id = "names_of_qc"></td>
             <td>Names of Helpers</td>

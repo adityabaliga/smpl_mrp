@@ -108,12 +108,13 @@ class OrderDetail:
 
     @classmethod
     def smpl_lst_by_operation(cls, status, operation):
+
         with CursorFromConnectionFromPool() as cursor:
             if operation == 'Mini_Slitting':
                 cursor.execute(
                     "select distinct on (smpl_no, ms_width) * from order_details where status = %s and operation like %s",
                     (status, operation + '%'))
-            if operation == 'Reshearing':
+            if operation == 'Reshearing' or operation == "Narrow_CTL":
                 cursor.execute(
                     "select distinct on (smpl_no, ms_width, ms_length) * from order_details where status = %s and operation like %s",
                     (status, operation + '%'))

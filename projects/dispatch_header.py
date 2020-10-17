@@ -32,6 +32,18 @@ class DispatchHeader:
             user_data = cursor.fetchall()
             return user_data
 
+    @classmethod
+    def get_daily_report(cls, date):
+        dispatch_lst = []
+        dispatch_hdr_id_lst = []
+        with CursorFromConnectionFromPool() as cursor:
+            cursor.execute(
+                "select sum(weight), customer from dispatch_header, dispatch_detail "
+                "where dispatch_date = %s and dispatch_header.dispatch_id = dispatch_detail.dispatch_id "
+                "group by dispatch_header.customer",
+                (date,))
+            user_data = cursor.fetchall()
+            return user_data
 
     @classmethod
     def get_hdr_by_id(cls, select_dispatch_hdr_id):
