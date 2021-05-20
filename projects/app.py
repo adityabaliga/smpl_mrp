@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, Markup
 from incoming import Incoming
 from current_stock import CurrentStock
 from decimal import Decimal
@@ -947,8 +947,8 @@ def submit_processing():
         # Slitting/Mini Slitting and CTL/Reshearing/NCTL are managed differently
         if operation == "CTL" or operation == "Reshearing" or operation == "Narrow_CTL" or operation == "Lamination" or operation=="Levelling":
             lamination_lst = request.form.getlist('lamination')
-            for output_width, output_length, actual_no_of_pieces, actual_no_of_packets, processed_wt, \
-                 lamination, fg_yes_no, remarks in zip(output_width_lst, output_length_lst, actual_no_of_pieces_lst,
+            for output_width, output_length, actual_no_of_pieces, packet_name, processed_wt, \
+                lamination, fg_yes_no, remarks in zip(output_width_lst, output_length_lst, actual_no_of_pieces_lst,
                                                                        packet_name_lst, processed_wt_lst,
                                                                         lamination_lst, fg_yes_no_lst, remarks_lst):
                 ip_size = input_size.split('x')
@@ -962,7 +962,7 @@ def submit_processing():
                     # Get mother size and cut size from the screen. Create processing detail and then update to db
                     processing_detail = ProcessingDetail(smpl_no, operation, machine, processing_id, output_width,
                                                          output_length, actual_no_of_pieces,
-                                                         actual_no_of_packets, remarks, processed_wt, ms_width,
+                                                         packet_name, remarks, processed_wt, ms_width,
                                                          ms_length)
                     processing_detail.save_to_db()
 
@@ -1021,7 +1021,7 @@ def submit_processing():
                     # The new material is inserted in to current stock
                     if cc_insert == "insert":
                         cs_cc = CurrentStock(smpl_no, customer, processed_wt, actual_no_of_pieces, thickness,
-                                             output_width, output_length, fg_yes_no, grade, unit)
+                                             output_width, output_length, fg_yes_no, grade, unit, packet_name)
                         cs_cc.save_to_db()
 
                     # This checks if detail is complete by comparing the processed weight and order detail weight.
@@ -1127,6 +1127,107 @@ def submit_processing():
 
         return render_template('/main_menu.html', message="Processing for " + smpl_no + " entered.")
 
+
+
+@app.route("/submit_slitting_processing", methods=['GET', 'POST'])
+def submit_slitting_processing():
+    if request.method == 'POST':
+        smpl_no = request.form['smpl_no']
+        operation = request.form['operation']
+        #order_id = request.form['order_id']
+
+        input_size = request.form['input_material']
+        output_width_lst = request.form.getlist('output_width')
+        width_name_lst = request.form.getlist('width_name')
+        #order_detail_id_lst = request.form.getlist('order_detail_id')
+        fg_yes_no_lst = request.form.getlist('fg_yes_no')
+
+        part_length_lst = request.form.getlist('part_length')
+        part_name_lst = request.form.getlist('part_name')
+        #processed_wt_lst = request.form.getlist('processed_wt')
+        #remarks = request.form['remarks']
+        remarks = ''
+
+        machine = request.form['machine']
+        temp_machine = machine
+        processing_date = request.form['processing_date']
+        start_time = request.form['start_time']
+        end_time = request.form['end_time']
+        processing_time = request.form['processing_time']
+        customer = request.form['customer']
+        thickness = float(request.form['thickness'])
+        grade = request.form['grade']
+
+        no_of_qc = request.form['no_of_qc']
+        no_of_helpers = request.form['no_of_helpers']
+        #names_of_qc = request.form['names_of_qc']
+        #names_of_helpers = request.form['names_of_helpers']
+        #name_of_packer = request.form['name_of_packer']
+        names_of_qc=''
+
+        setting_date = request.form['setting_date']
+        setting_start_time = request.form['setting_start_time']
+        setting_end_time = request.form['setting_end_time']
+        setting_time = request.form['setting_time']
+
+        #total_processed_wt = Decimal(request.form['total_processed_wt'])
+        total_processed_wt = Decimal(request.form['total_processed_wt'])
+        #balance_proc_wt = Decimal(request.form['balance_wt'])
+        total_cuts = int(request.form['total_cuts'])
+        rm_wt = Decimal(request.form['input_weight'])
+        cs_rm_id = request.form['cs_rm_id']
+
+        # Processing object created and saved to db
+        processing = Processing(smpl_no, operation, processing_date, start_time, end_time, setting_start_time,
+                                setting_end_time, processing_time, setting_time, no_of_qc, no_of_helpers, names_of_qc,
+                                setting_date, total_processed_wt, total_cuts)
+        processing_id = processing.save_to_db()
+
+        ip_size = input_size.split('x')
+        ms_width = ip_size[0]
+        ms_length = ip_size[1]
+
+        for output_width, width_name, fg_yes_no in zip(output_width_lst, width_name_lst, fg_yes_no_lst):
+            for part_length, part_name in zip(part_length_lst, part_name_lst):
+                output_length = 0
+                processed_numbers = 1
+
+                packet_name = width_name + part_name
+                part_weight = Decimal(thickness * float(output_width) * float(part_length) * 0.00000785)
+                part_weight = round(part_weight, 3)
+                processing_detail = ProcessingDetail(smpl_no, operation, machine, processing_id, output_width,
+                                                     output_length, processed_numbers, packet_name, remarks, part_weight,
+                                                     ms_width, ms_length)
+                processing_detail.save_to_db()
+
+                # Reduce weight of mother material by the processed weight of cut material
+                rm_status = CurrentStock.change_wt(smpl_no, ms_width, ms_length, part_weight, processed_numbers, "minus")
+
+                # Increase weight of cut material by processed weight. If cut material, doesn't already exist, the
+                # function returns insert => a new record has to be inserted
+                cc_insert = CurrentStock.change_wt(smpl_no, output_width, output_length, part_weight,
+                                                   processed_numbers, "plus")
+
+                # Unit of the material is decided based on the machine used to process the material.
+                # WARNING: This is bad programming
+                unit = '2'
+
+                # The new material is added to current stock
+                if cc_insert == "insert":
+                    cs_cc = CurrentStock(smpl_no, customer, part_weight, processed_numbers, thickness,
+                                         output_width, output_length, fg_yes_no, grade, unit, packet_name)
+                    cs_cc.save_to_db()
+        return render_template('/main_menu.html', message=Markup("Processing for " + smpl_no + " entered. Click <a href='/print_label?processing_id=" + str(processing_id) + " class='alert-link'>here</a> to print label"))
+
+@app.route('/print_label', methods=['GET', 'POST'])
+def print_label():
+    processing_id=0
+    if request.method == 'POST':
+        processing_id = request.form['processing_id']
+
+    if request.method == 'GET':
+        processing_id = request.args.get('processing_id')
+    return render_template('print_label.html')
 
 
 @app.route('/check_stock', methods=['GET', 'POST'])
@@ -1521,6 +1622,6 @@ def change_date_format(date):
 if __name__ == '__main__':
     app.config["SECRET_KEY"] = "SMPLMRP"
     # app.run(debug=True)
-    SERVER_NAME = 'UNIT2-OFFICE2'
+    SERVER_NAME = 'localhost'
     SERVER_PORT = 5001
-    app.run(SERVER_NAME, SERVER_PORT, threaded=True)
+    app.run(SERVER_NAME, SERVER_PORT, threaded=True, debug=True)

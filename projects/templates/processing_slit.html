@@ -33,7 +33,7 @@
 </head>
 
 <body onload="setFocusToTextBox_Slit('{{operation}}')">
-<form action="/submit_processing" onsubmit="return validateForm()" method="post">
+<form action="/submit_slitting_processing" onsubmit="return validateForm()" method="post">
 
      <div class="topnav" id="myTopnav">
         <br>
@@ -55,10 +55,10 @@
     <table class = "table table-sm">
     <tr>
         <td>SMPL No</td>
-        <td><input type="text" name="smpl_no" value = "{{incoming.smpl_no}}" readonly></td>
+        <td><input type="text" name="smpl_no" id="smpl_no" value = "{{incoming.smpl_no}}" readonly></td>
 
         <td >Customer</td>
-        <td><input type="text" name="customer" value = "{{incoming.customer}}" readonly></td>
+        <td><input type="text" name="customer" id="customer" value = "{{incoming.customer}}" readonly></td>
     </tr>
     <tr>
         <td>Thickness</td>
@@ -79,10 +79,10 @@
         <td><input type="text" name="numbers"  value = "{{incoming.numbers}}" readonly></td>
     </tr>
     <tr>
-
-
+        <td>Mill ID</td>
+        <td><input type="text"  name="mill_id"  id="mill_id" value = "{{incoming.mill_id}}" readonly></td>
         <td>Grade</td>
-        <td><input type="text"  name="grade"  value = "{{incoming.grade}}" readonly></td>
+        <td><input type="text"  name="grade"  id="grade" value = "{{incoming.grade}}" readonly></td>
 
         <!--td><input type="number"  name="order_id" id="order_id"  value = {{order_id}} hidden></td-->
 
@@ -106,7 +106,7 @@
             </td>
 
             <td><input type = "number" name ="input_numbers" id = "numbers" value = {{cs_rm.numbers}} readonly></td>
-            <td><input type = "number" name ="input_weight" id = "weight" value = {{cs_rm.weight}} readonly></td>
+            <td><input type = "number" name ="input_weight" id = "input_weight" value = {{cs_rm.weight}} readonly></td>
             <td><input type = "number" name ="cs_rm_id" id = "cs_rm_id" value = {{cs_rm_id}} hidden></td>
 
         </tr>
@@ -206,7 +206,7 @@
         </tr>
 
         <tr>
-            <td><input type = "text" name = "output_width" id = "output_width" required></td>
+            <td><input type = "text" name = "output_width" id = "output_width" required onchange="change_width('numbers_pkts1')"></td>
             <td><input type = "text" name = "width_name" id = "width_name"></td>
             <!--td>
                 <select name="fg_yes_no" id="fgyesno">
@@ -226,13 +226,34 @@
 
         </tr>
 
+
+    </table>
+    <table class = "table table-sm">
+        <tr>
+                <th>Total Width (in mm)</th>
+                <td><input type="number" name="total_width" id="total_width" readonly></td>
+                <td></td>
+                <td></td>
+        </tr>
+    </table>
+
+    <table class = "table table-sm" id="part_tbl">
+        <tr>
+            <th>Part Length (in metres)</th>
+            <th>Part Name</th>
+        </tr>
+        <tr>
+            <td><input type="number" name="part_length" id="part_length" onchange="change_part_length('part_tbl')"></td>
+            <td><input type = "text" name = "part_name" id = "part_name"></td>
+            <td><input type="button" name="add_part" id="add_part" value="Add Part" onclick="addRow('part_tbl')"></td>
+        </tr>
     </table>
     <table class = "table table-sm" id="numbers_pkts">
         <tr>
             <th>Total Length Processed</th>
-            <td><input type = "number" name = "total_length" id="total_length" onchange ="get_part_weight('numbers_pkts1')"></td>
+            <td><input type = "number" name = "total_length" id="total_length" readonly></td>
             <th>No. of Parts</th>
-            <td><input type = "number" name ="packet_name" id = "packet_name"  onchange ="get_part_weight('numbers_pkts1')"></td>
+            <td><input type = "number" name ="total_parts" id = "total_parts"  readonly></td>
 
             <th></th>
             <td><input type = "number" name = "actual_no_of_pieces" id = "actual_no_of_pieces" hidden></td>
@@ -292,9 +313,9 @@
             <td><input type = "number" name = "no_of_qc" id = "no_of_qc" required></td>
             <td>No. of helpers</td>
             <td><input type = "number" name = "no_of_helpers" id = "no_of_helpers" required></td>
-            <td>Names of fitters</td>
+            <!--td>Names of fitters</td>
             <td><input type = "text" name = "names_of_qc" id = "names_of_qc"></td>
-            <!--td>Names of Helpers</td>
+            <td>Names of Helpers</td>
             <td><input type = "text" name = "names_of_helpers" id = "names_of_helpers"></td>
             <td>Names of Packers</td>
             <td><input type = "text" name = "name_of_packer" id = "name_of_packer"></td-->
@@ -354,9 +375,45 @@
             </select>
     </p-->
 
+    <input type = "button" class="btn btn-default" value="Make Label" onclick="make_label_slit()">
+    <table class="table table-sm" id="fg_table">
+        <tr>
+            <th>SMPL No</th>
+            <th>Customer</th>
+            <th>Machine</th>
+            <th>Size</th>
+            <th>Coil Length</th>
+            <th>Coil Name</th>
+            <th>Mill ID</th>
+            <th>Grade</th>
+            <th></th>
+        </tr>
+        <!--tr>
+            <td>%smpl_no%</td>
+            <td>%customer%</td>
+            <td>%machine%</td>
+            <td>%size%</td>
+            <td>%coil_length%</td>
+            <td>%coil_name%</td>
+            <td>%mill_id%</td>
+            <td>%grade%</td>
+            <td><input type = "button" class="btn btn-default" value="Print" onclick="print_label()"></td>
+
+
+        </tr-->
+
+
+
+
+    </table>
+
+
     <p>
         <!--button type ="button" class="btn btn-default">Start</button-->
+        <!--input type = "button" class="btn btn-default" value="Print" onclick="print_label()"-->
         <input type="submit" name = "submit" id = "submit" class="btn btn-default" value="Submit">
+
+
 
     </p>
 

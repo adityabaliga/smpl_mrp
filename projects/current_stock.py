@@ -4,7 +4,7 @@ from order_detail import OrderDetail
 
 
 class CurrentStock:
-    def __init__(self, smpl_no, customer, weight, numbers, thickness, width, length, status, grade, unit):
+    def __init__(self, smpl_no, customer, weight, numbers, thickness, width, length, status, grade, unit, packet_name):
         self.smpl_no = smpl_no
         self.customer = customer
         self.weight = weight
@@ -15,13 +15,14 @@ class CurrentStock:
         self.status = status
         self.grade = grade
         self.unit = unit
+        self.packet_name = packet_name
 
     def save_to_db(self):
         with CursorFromConnectionFromPool() as cursor:
             cursor.execute("insert into current_stock (smpl_no,weight,numbers,width,length,status,customer,thickness"
-                           ",grade, unit) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+                           ",grade, unit, packet_name) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
                            (self.smpl_no, self.weight, self.numbers, self.width, self.length, self.status, self.customer,
-                           self.thickness, self.grade, self.unit))
+                           self.thickness, self.grade, self.unit, self.packet_name))
 
     def update_status(self, status):
         with CursorFromConnectionFromPool() as cursor:
@@ -48,7 +49,7 @@ class CurrentStock:
                     cs = CurrentStock(smpl_no=lst[1], weight=Decimal(lst[2]), numbers=int(lst[3]),
                                       width=Decimal(lst[4]),
                                       length=Decimal(lst[5]), status=lst[6], customer=lst[7], thickness=Decimal(lst[8]),
-                                      grade=lst[9], unit=lst[10])
+                                      grade=lst[9], unit=lst[10], packet_name = lst [11])
                     cs_lst.append(cs)
 
                 return cs_lst
@@ -71,7 +72,7 @@ class CurrentStock:
             for lst in user_data:
                 cs = CurrentStock(smpl_no=lst[1], weight=Decimal(lst[2]), numbers=int(lst[3]), width=Decimal(lst[4]),
                                   length=Decimal(lst[5]), status=lst[6], customer=lst[7], thickness=Decimal(lst[8]),
-                                  grade=lst[9], unit=lst[10])
+                                  grade=lst[9], unit=lst[10], packet_name = lst [11])
                 cs_lst.append(cs)
 
             return cs_lst
@@ -98,15 +99,19 @@ class CurrentStock:
 
         if operation == "Reshearing":
             with CursorFromConnectionFromPool() as cursor:
-                cursor.execute("select * from current_stock where (status = 'RM' or status = 'HC' or status= 'WIP') and "
-                               "length > 0  and unit = %s and customer %s order by smpl_no asc", (str(unit), cust_query))
+                if customer_type == "smpl":
+                    cursor.execute("select * from current_stock where (status = 'RM' or status = 'HC' or status= 'WIP') and "
+                               "length > 0  and unit = %s and customer not like 'TSPDL' order by smpl_no asc", (str(unit),))
+                if customer_type == "tr":
+                    cursor.execute("select * from current_stock where (status = 'RM' or status = 'HC' or status= 'WIP') and "
+                               "length > 0  and unit = %s and customer like 'TSPDL' order by smpl_no asc", (str(unit),))
                 user_data = cursor.fetchall()
 
         if user_data:
             for lst in user_data:
                 cs = CurrentStock(smpl_no=lst[1], weight=Decimal(lst[2]), numbers=int(lst[3]), width=Decimal(lst[4]),
                                   length=Decimal(lst[5]), status=lst[6], customer=lst[7], thickness=Decimal(lst[8]),
-                                  grade=lst[9], unit=lst[10])
+                                  grade=lst[9], unit=lst[10], packet_name = lst [11])
                 cs_lst.append(cs)
 
                 cs_id_lst.append(lst[0])
@@ -126,7 +131,7 @@ class CurrentStock:
 
             cs = CurrentStock(smpl_no=lst[1], weight=Decimal(lst[2]), numbers=int(lst[3]), width=Decimal(lst[4]),
                               length=Decimal(lst[5]), status=lst[6], customer=lst[7], thickness=Decimal(lst[8]),
-                              grade=lst[9], unit=lst[10])
+                              grade=lst[9], unit=lst[10], packet_name = lst [11])
             cs_lst.append(cs)
             cs_id_lst.append(lst[0])
 
@@ -147,7 +152,7 @@ class CurrentStock:
                     cs = CurrentStock(smpl_no=lst[1], weight=Decimal(lst[2]), numbers=int(lst[3]),
                                       width=Decimal(lst[4]),
                                       length=Decimal(lst[5]), status=lst[6], customer=lst[7], thickness=Decimal(lst[8]),
-                                      grade=lst[9], unit=lst[10])
+                                      grade=lst[9], unit=lst[10], packet_name = lst [11])
                     cs_lst.append(cs)
 
 
@@ -167,7 +172,7 @@ class CurrentStock:
                 cs = CurrentStock(smpl_no=user_data[1], weight=Decimal(user_data[2]), numbers=int(user_data[3]),
                                   width=Decimal(user_data[4]), length=Decimal(user_data[5]), status=user_data[6],
                                   customer=user_data[7], thickness=Decimal(user_data[8]), grade=user_data[9],
-                                  unit=user_data[10])
+                                  unit=user_data[10], packet_name = user_data[11])
 
                 return cs
             else:
@@ -176,7 +181,8 @@ class CurrentStock:
     @classmethod
     def change_wt(cls, smpl_no, width, length, processed_wt, actual_no_of_pieces, sign):
         with CursorFromConnectionFromPool() as cursor:
-            cursor.execute("select weight, numbers, unit, cs_id from current_stock where smpl_no = %s and width = %s and length = %s",(smpl_no,width,length))
+            cursor.execute("select weight, numbers, unit, cs_id from current_stock where smpl_no = %s and width = %s "
+                           "and length = %s ",(smpl_no,width,length))
             user_data = cursor.fetchone()
             if user_data:
                 weight = Decimal(user_data[0])
@@ -201,13 +207,16 @@ class CurrentStock:
                     #OrderDetail.complete_processing_on_del(smpl_no, width, length)
                     #CurrentStock.delete_record(cs_id)
 
-                    cursor.execute("delete from current_stock where smpl_no = %s and width = %s and length = %s",(smpl_no,width,length))
+                    cursor.execute("delete from current_stock where smpl_no = %s and width = %s and length = %s"
+                                   ,(smpl_no,width,length))
                     # This is done when the RM is over but for some reason the order could not be completed
                     # This could when the RM is thickness is more or wrong calc of material or processing mistake/change
 
                     return "complete"
                 else:
-                    cursor.execute("update current_stock set weight = %s, numbers = %s where smpl_no = %s and width = %s and length = %s",(new_weight,new_numbers,smpl_no,width,length))
+                    cursor.execute("update current_stock set weight = %s, numbers = %s where smpl_no = %s and width = %s"
+                                   " and length = %s",
+                                   (new_weight,new_numbers,smpl_no,width,length))
                     return "continue"
             else:
                 return "insert"
@@ -237,7 +246,8 @@ class CurrentStock:
 
         for lst in user_data:
             cs = CurrentStock(smpl_no=lst[1],weight = Decimal(lst[2]),numbers=int(lst[3]),width=Decimal(lst[4]),
-                              length=Decimal(lst[5]),status=lst[6],customer=lst[7], thickness=Decimal(lst[8]),grade=lst[9],unit=lst[10])
+                              length=Decimal(lst[5]),status=lst[6],customer=lst[7], thickness=Decimal(lst[8]),
+                              grade=lst[9],unit=lst[10], packet_name = lst [11])
             cs_lst.append(cs)
             cs_id_lst.append(lst[0])
         return zip(cs_id_lst,cs_lst)
@@ -252,7 +262,8 @@ class CurrentStock:
             user_data = cursor.fetchall()
         for lst in user_data:
             cs = CurrentStock(smpl_no=lst[1],weight = Decimal(lst[2]),numbers=int(lst[3]),width=Decimal(lst[4]),
-                              length=Decimal(lst[5]),status=lst[6],customer=lst[7], thickness=Decimal(lst[8]),grade=lst[9],unit=lst[10])
+                              length=Decimal(lst[5]),status=lst[6],customer=lst[7], thickness=Decimal(lst[8]),
+                              grade=lst[9],unit=lst[10], packet_name = lst [11])
             cs_lst.append(cs)
             cs_id_lst.append(lst[0])
         return zip(cs_id_lst,cs_lst)
@@ -268,7 +279,7 @@ class CurrentStock:
         for lst in user_data:
             cs = CurrentStock(smpl_no=lst[1], weight=Decimal(lst[2]), numbers=int(lst[3]), width=Decimal(lst[4]),
                               length=Decimal(lst[5]), status=lst[6], customer=lst[7], thickness=Decimal(lst[8]),
-                              grade=lst[9], unit=lst[10])
+                              grade=lst[9], unit=lst[10], packet_name = lst [11])
             cs_lst.append(cs)
             cs_id_lst.append(lst[0])
         return zip(cs_id_lst,cs_lst)
@@ -306,7 +317,8 @@ class CurrentStock:
                 user_data = cursor.fetchall()
         for lst in user_data:
             cs = CurrentStock(smpl_no=lst[1],weight = Decimal(lst[2]),numbers=int(lst[3]),width=Decimal(lst[4]),
-                              length=Decimal(lst[5]),status=lst[6],customer=lst[7], thickness=Decimal(lst[8]),grade=lst[9],unit=lst[10])
+                              length=Decimal(lst[5]),status=lst[6],customer=lst[7], thickness=Decimal(lst[8]),
+                              grade=lst[9],unit=lst[10], packet_name = lst [11])
             cs_lst.append(cs)
             cs_id_lst.append(lst[0])
 

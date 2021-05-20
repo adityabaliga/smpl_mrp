@@ -16,7 +16,7 @@ function setFocusToTextBox(operation){
 // This function is to set the focus when the page loads for slitting operation
 function setFocusToTextBox_Slit(operation){
 
-        document.getElementById("no_of_slits").focus();
+        document.getElementById("output_width").focus();
         if(operation == "Mini_Slitting"){
             add_row_for_length();
         }
@@ -116,6 +116,35 @@ function time_taken_setting(){
     document.getElementById("setting_start_time").focus();
    }
 }
+function change_part_length(table_id){
+    var table = document.getElementById(table_id);
+    var total_processed_wt =0;
+    var total_length = 0;
+    var total_parts = 0;
+    for (var i = 1, row; row = table.rows[i]; i++) {
+        total_length += Number(row.cells[0].lastChild.value);
+    }
+    document.getElementById("total_length").value = total_length;
+    document.getElementById("total_parts").value = table.rows.length-1;
+    if(document.getElementById("total_width").value){
+    get_part_weight();
+   }
+
+}
+
+function change_width(table_id){
+    var table = document.getElementById(table_id);
+    var total_width =0;
+
+    for (var i = 1, row; row = table.rows[i]; i++) {
+        total_width += Number(row.cells[0].lastChild.value);
+    }
+    document.getElementById("total_width").value = total_width;
+   if(document.getElementById("total_length").value){
+    get_part_weight();
+   }
+
+}
 
 //Calculates processed weight for slitting
 function get_part_weight(){
@@ -126,20 +155,20 @@ function get_part_weight(){
     input_material = input_material.split("x");
 
     var width = Number(input_material[0]);
-    rm_wt = Number(document.getElementById("weight").value);
+    rm_wt = Number(document.getElementById("input_weight").value);
 
     var total_processed_wt = thickness * width * total_length * 0.00000785;
     var coil_length = rm_wt/thickness/width/0.00000785;
     document.getElementById("total_processed_wt").value = total_processed_wt.toFixed(3);
 
-    var total_order_wt = Number(document.getElementById("order_wt").value);
-    var completed_proc_wt = Number(document.getElementById("tot_proc_wt").value);
-    var scrap_wt = total_order_wt - total_processed_wt - completed_proc_wt ;
+    //var total_order_wt = Number(document.getElementById("order_wt").value);
+    //var completed_proc_wt = Number(document.getElementById("tot_proc_wt").value);
+    //var scrap_wt = total_order_wt - total_processed_wt - completed_proc_wt ;
 
 
-    document.getElementById("balance_wt").value = scrap_wt.toFixed(3);
+    //document.getElementById("balance_wt").value = scrap_wt.toFixed(3);
 
-    validate();
+    //validate();
 }
 
 function add_row_for_length(){
@@ -216,6 +245,59 @@ function validate(){
 
  }
 
+function print_label(){
+   var rowId = parseInt(event.target.parentNode.parentNode.id);
+              //this gives id of tr whose button was clicked
+    var data = "";
+    var fg_table = document.getElementById('fg_table');
+    for(i=0;i<fg_table.rows[rowId].cells.length-1;i++){
+        data = data + fg_table.rows[rowId].cells[i].lastChild.data + '&';
+    }
+    var new_page = window.open('print_label?' + data);
+    //new_page.document.write("output");
+}
+
+function make_label_slit(){
+    var width_table = document.getElementById('numbers_pkts1');
+    var parts_table = document.getElementById('part_tbl');
+    var newHTML = '';
+    var newNEWHTML = '';
+    var id =1;
+    var part_length,part_name, width, width_name, width_part_name, size;
+    var html = '<tr id= %id%><td>%smpl_no%</td><td>%customer%</td><td>%machine%</td><td>%size%</td><td>%coil_length%</td><td>%coil_name%</td><td>%mill_id%</td><td>%grade%</td><td><input type = "button" class="btn btn-default" value="Print" onclick="print_label()"></td></tr>'
+    var thickness = document.getElementById("thickness").value;
+    var mill_id = document.getElementById("mill_id").value;
+    var grade_field = document.getElementById("grade").value;
+    var smpl_no = document.getElementById("smpl_no").value;
+    var customer = document.getElementById("customer").value;
+    grade = grade_field.split("GRADE").pop();
+    grade = grade.slice(1);
+    for(i=1;i<parts_table.rows.length;i++){
+        part_length = parts_table.rows[i].cells[0].lastChild.value;
+        part_name = parts_table.rows[i].cells[1].lastChild.value;
+        newHTML = html.replace('%coil_length%', part_length);
+        newHTML = newHTML.replace('%grade%', grade);
+        newHTML = newHTML.replace('%smpl_no%', smpl_no);
+        newHTML = newHTML.replace('%customer%', customer);
+        newHTML = newHTML.replace('%machine%', "Slitting");
+        newHTML = newHTML.replace('%mill_id%', mill_id);
+
+        for(j=1;j<width_table.rows.length;j++){
+            width = width_table.rows[j].cells[0].lastChild.value;
+            width_name = width_table.rows[j].cells[1].lastChild.value;
+            size = thickness + " x " + width + " x Coil";
+            width_part_name = width_name + part_name;
+            newNEWHTML = newHTML.replace('%coil_name%', width_part_name);
+            newNEWHTML = newNEWHTML.replace('%size%', size);
+            newNEWHTML = newNEWHTML.replace('%coil_name%', width_part_name);
+            newNEWHTML = newNEWHTML.replace('%id%', id);
+            document.getElementById('fg_table').insertAdjacentHTML('beforeend', newNEWHTML);
+            id = id +1;
+        }
+
+    }
+
+}
 
 function setting_done_change(){
     var setting_done_yes = document.getElementById("setting_done_yes").checked;
@@ -286,5 +368,5 @@ function validateForm(){
         return false;
     }
 
-
 }
+
