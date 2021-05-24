@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Print Label</title>
+    <style>
+        .label{
+        width : 14.5cm;
+        height : 9.5cm;
+        border-style : solid;
+        }
+        .label_details{
+        font : sans-serif;
+        font-size : 30px;
+        line-height: 10%;
+        }
+
+    </style>
+
+</head>
+<body onload="get_param()">
+<div class = "label">
+    <table>
+        <td>M/C No - 07 Packet - 06</td>
+
+        <td text-align="right" font = "sans-serif" width="300"> <div align="right">DATE : 10/10/2020</div></td>
+    </table>
+    <div  width = "14.5cm" align="centre" style = "font-size: 50px;" name = "customer" id="customer">NASH INDUSTRIES</div>
+    <div class = "label_details">
+        <p name="smpl_no" id = "smpl_no">2SMPL6868B (EGI sheets)</p>
+        <p name = "size" id="size">1.00 x 285 x 1180 - 328 no.s</p>
+        <p name = "mill_id" id="mill_id">COIL ID: NE2000179102</p>
+        <p name ="grade" id="grade">GRADE : SECC</p>
+        <p>BOTH SIDE LAMINATION</p>
+
+    </div>
+</div>
+<script src = "{{ url_for('static', filename='js/print_label.js') }}"></script>
+</body>
+</html>
